@@ -1,0 +1,245 @@
+# Setup Guide for Ticket Marketplace SaaS
+
+This guide will help you set up the Ticket Marketplace SaaS application.
+
+## Prerequisites
+
+- Node.js 18 or higher
+- npm or yarn
+- Internet connection (for initial Prisma setup)
+
+## Step-by-Step Setup
+
+### 1. Clone and Install
+
+```bash
+git clone https://github.com/zaidhafeezvu/ticket-SaaS.git
+cd ticket-SaaS
+npm install
+```
+
+### 2. Set Up Environment Variables
+
+Create a `.env` file in the root directory:
+
+```bash
+DATABASE_URL="file:./dev.db"
+```
+
+### 3. Generate Prisma Client
+
+This step requires internet access to download Prisma engines:
+
+```bash
+npx prisma generate
+```
+
+If this step fails due to network restrictions, you can:
+- Try again on a different network
+- Use a proxy or VPN
+- Set `PRISMA_ENGINES_MIRROR` environment variable
+
+### 4. Initialize the Database
+
+```bash
+npx prisma migrate dev --name init
+```
+
+This will:
+- Create the SQLite database file (`prisma/dev.db`)
+- Apply the schema migrations
+- Create tables for Users, Tickets, and Purchases
+
+### 5. (Optional) Seed Sample Data
+
+You can manually create sample data through the UI or use Prisma Studio:
+
+```bash
+npx prisma studio
+```
+
+This opens a browser interface where you can:
+- Create users
+- Add sample tickets
+- View all data
+
+### 6. Start Development Server
+
+```bash
+npm run dev
+```
+
+Visit http://localhost:3000 to see your application!
+
+## Troubleshooting
+
+### Prisma Engine Download Issues
+
+If `npx prisma generate` fails:
+
+**Solution 1: Use a mirror**
+```bash
+export PRISMA_ENGINES_MIRROR=https://your-mirror-url
+npx prisma generate
+```
+
+**Solution 2: Manual download**
+Download engines from another machine and copy to:
+- `node_modules/@prisma/engines/`
+- `node_modules/.prisma/client/`
+
+**Solution 3: Binary cache**
+If you've generated Prisma client before, you can copy the cache from:
+- Mac/Linux: `~/.cache/prisma/`
+- Windows: `%LOCALAPPDATA%\Prisma\`
+
+### Database Connection Issues
+
+If you get database errors:
+
+```bash
+# Reset the database
+rm prisma/dev.db
+npx prisma migrate reset
+
+# Or just migrate again
+npx prisma migrate dev
+```
+
+### Build Errors
+
+If the build fails:
+
+```bash
+# Clear Next.js cache
+rm -rf .next
+
+# Rebuild
+npm run build
+```
+
+## Production Deployment
+
+### 1. Build for Production
+
+```bash
+npm run build
+```
+
+### 2. Start Production Server
+
+```bash
+npm run start
+```
+
+### 3. Deployment Platforms
+
+This app can be deployed to:
+
+**Vercel (Recommended)**
+```bash
+npm install -g vercel
+vercel
+```
+
+**Other Platforms**
+- Railway.app
+- Render.com
+- DigitalOcean App Platform
+- AWS/GCP/Azure
+
+### Environment Variables for Production
+
+Make sure to set:
+- `DATABASE_URL` - Your database connection string
+- `NODE_ENV=production`
+
+## Using the Application
+
+### As a Seller
+
+1. Navigate to "Sell Tickets" or `/tickets/create`
+2. Fill in event details:
+   - Title
+   - Description
+   - Category (Concerts, Sports, Theater, Festivals)
+   - Event date and time
+   - Location
+   - Price per ticket
+   - Quantity available
+3. Submit the form
+4. Your tickets will appear in the marketplace and on your dashboard
+
+### As a Buyer
+
+1. Browse tickets on the homepage or `/tickets`
+2. Filter by category if desired
+3. Click on a ticket to view details
+4. Select quantity and click "Buy Now"
+5. View your purchases in the Dashboard
+
+### Dashboard Features
+
+- **Listed Tickets**: See all tickets you've listed
+- **Sales Stats**: Track revenue from ticket sales
+- **My Purchases**: View all tickets you've bought
+- **Quick Actions**: Create new listings or view ticket details
+
+## API Usage
+
+### Get All Tickets
+
+```bash
+curl http://localhost:3000/api/tickets
+```
+
+### Get Tickets by Category
+
+```bash
+curl http://localhost:3000/api/tickets?category=concerts
+```
+
+### Create a Ticket
+
+```bash
+curl -X POST http://localhost:3000/api/tickets \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Summer Music Festival",
+    "description": "Amazing outdoor concert",
+    "price": 50,
+    "eventDate": "2024-07-15T18:00:00Z",
+    "location": "Central Park, NY",
+    "category": "concerts",
+    "quantity": 100
+  }'
+```
+
+### Purchase Tickets
+
+```bash
+curl -X POST http://localhost:3000/api/purchases \
+  -H "Content-Type: application/json" \
+  -d '{
+    "ticketId": "clxxxx",
+    "quantity": 2
+  }'
+```
+
+## Next Steps
+
+- Implement user authentication
+- Add payment processing
+- Set up email notifications
+- Deploy to production
+- Add more features from the roadmap
+
+## Support
+
+If you encounter issues:
+1. Check this guide thoroughly
+2. Review error messages carefully
+3. Check the GitHub issues
+4. Open a new issue with details
+
+Happy ticket selling! 🎫
