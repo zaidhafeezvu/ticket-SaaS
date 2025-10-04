@@ -1,0 +1,64 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  tickets   Ticket[]
+  purchases Purchase[]
+}
+
+model Ticket {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  price       Float
+  eventDate   DateTime
+  location    String
+  category    String
+  quantity    Int
+  available   Int
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  sellerId    String
+  seller      User       @relation(fields: [sellerId], references: [id])
+  purchases   Purchase[]
+  
+  @@index([sellerId])
+}
+
+model Purchase {
+  id          String   @id @default(cuid())
+  quantity    Int
+  totalPrice  Float
+  status      String   @default("pending") // pending, completed, cancelled
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  buyerId     String
+  buyer       User     @relation(fields: [buyerId], references: [id])
+  ticketId    String
+  ticket      Ticket   @relation(fields: [ticketId], references: [id])
+  
+  @@index([buyerId])
+  @@index([ticketId])
+}
