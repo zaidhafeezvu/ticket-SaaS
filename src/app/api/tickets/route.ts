@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { auth } from "@/lib/auth";
 
 // GET all tickets
 export async function GET(request: NextRequest) {
@@ -35,21 +36,20 @@ export async function GET(request: NextRequest) {
 // POST create a new ticket
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { title, description, price, eventDate, location, category, quantity } = body;
-
-    // For demo purposes, we'll create a default user if none exists
-    let user = await prisma.user.findFirst();
-    
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          email: "demo@ticketsaas.com",
-          name: "Demo User",
-          password: "hashed_password_placeholder",
-        },
-      });
-    }
 
     const ticket = await prisma.ticket.create({
       data: {
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
         category,
         quantity,
         available: quantity,
-        sellerId: user.id,
+        sellerId: session.user.id,
       },
       include: {
         seller: {

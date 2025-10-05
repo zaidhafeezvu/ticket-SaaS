@@ -1,40 +1,11 @@
 import Link from "next/link";
+import { Navbar } from "@/components/navbar";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
       {/* Navigation */}
-      <nav className="border-b bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Link href="/" className="text-2xl font-bold text-blue-600">
-                🎫 TicketSaaS
-              </Link>
-            </div>
-            <div className="flex items-center gap-4">
-              <Link 
-                href="/tickets" 
-                className="text-gray-700 hover:text-blue-600 transition-colors"
-              >
-                Browse Tickets
-              </Link>
-              <Link 
-                href="/dashboard" 
-                className="text-gray-700 hover:text-blue-600 transition-colors"
-              >
-                Dashboard
-              </Link>
-              <Link 
-                href="/tickets/create" 
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Sell Tickets
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">

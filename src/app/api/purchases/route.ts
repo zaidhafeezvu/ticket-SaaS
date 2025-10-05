@@ -1,10 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { auth } from "@/lib/auth";
 
 // POST create a purchase
 export async function POST(request: NextRequest) {
   try {
+    // Check authentication
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { ticketId, quantity } = body;
 
@@ -35,19 +48,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For demo purposes, use the first user or create one
-    let user = await prisma.user.findFirst();
-    
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          email: "buyer@ticketsaas.com",
-          name: "Buyer User",
-          password: "hashed_password_placeholder",
-        },
-      });
-    }
-
     // Create purchase and update ticket availability in a transaction
     const purchase = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Update ticket availability
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       return tx.purchase.create({
         data: {
           ticketId,
-          buyerId: user.id,
+          buyerId: session.user.id,
           quantity,
           totalPrice: ticket.price * quantity,
           status: "completed",

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Navbar } from "@/components/navbar";
+import { useSession } from "@/lib/auth-client";
 
 interface Ticket {
   id: string;
@@ -22,6 +24,7 @@ interface Ticket {
 
 export default function TicketDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const { data: session } = useSession();
   const [ticket, setTicket] = useState<Ticket | null>(null);
   const [loading, setLoading] = useState(true);
   const [purchaseQuantity, setPurchaseQuantity] = useState(1);
@@ -48,6 +51,11 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
   };
 
   const handlePurchase = async () => {
+    if (!session) {
+      router.push("/auth/login");
+      return;
+    }
+
     if (!ticket || purchaseQuantity > ticket.available) {
       alert("Invalid quantity");
       return;
@@ -69,8 +77,10 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
       if (response.ok) {
         alert("Purchase successful! Check your dashboard for details.");
         router.push("/dashboard");
+        router.refresh();
       } else {
-        alert("Purchase failed. Please try again.");
+        const error = await response.json();
+        alert(error.error || "Purchase failed. Please try again.");
       }
     } catch (error) {
       console.error("Error purchasing ticket:", error);
@@ -82,8 +92,11 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-2xl">Loading...</div>
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="flex items-center justify-center py-16">
+          <div className="text-2xl">Loading...</div>
+        </div>
       </div>
     );
   }
@@ -91,15 +104,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
   if (!ticket) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <nav className="border-b bg-white shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <Link href="/" className="text-2xl font-bold text-blue-600">
-                🎫 TicketSaaS
-              </Link>
-            </div>
-          </div>
-        </nav>
+        <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
           <h1 className="text-3xl font-bold mb-4">Ticket not found</h1>
           <Link href="/tickets" className="text-blue-600 hover:underline">
@@ -121,23 +126,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
-      <nav className="border-b bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold text-blue-600">
-              🎫 TicketSaaS
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link href="/tickets" className="text-gray-700 hover:text-blue-600">
-                Browse Tickets
-              </Link>
-              <Link href="/dashboard" className="text-gray-700 hover:text-blue-600">
-                Dashboard
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
