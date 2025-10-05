@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { useSession } from "@/lib/auth-client";
 

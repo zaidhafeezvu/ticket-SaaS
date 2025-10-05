@@ -4,6 +4,7 @@ A modern, full-featured SaaS platform for buying and selling event tickets built
 
 ## 🎫 Features
 
+- **User Authentication**: Secure email/password authentication with Better Auth
 - **Event Ticket Marketplace**: Browse and purchase tickets for concerts, sports, theater, and festivals
 - **Ticket Listing**: Easily list your tickets for sale with detailed information
 - **Real-time Availability**: Track ticket availability in real-time
@@ -11,11 +12,13 @@ A modern, full-featured SaaS platform for buying and selling event tickets built
 - **Dashboard**: Comprehensive dashboard to manage your listed tickets and purchases
 - **Responsive Design**: Beautiful, mobile-friendly UI built with Tailwind CSS
 - **Database Management**: SQLite database with Prisma ORM for data persistence
+- **Protected Routes**: Authentication-required pages for selling and purchasing
 
 ## 🚀 Tech Stack
 
 - **Framework**: Next.js 15.5.4 with App Router
 - **Language**: TypeScript
+- **Authentication**: Better Auth with email/password
 - **Styling**: Tailwind CSS 4
 - **Database**: SQLite with Prisma ORM
 - **API**: Next.js API Routes (REST)
@@ -33,24 +36,42 @@ cd ticket-SaaS
 npm install
 ```
 
-3. Set up the database:
+3. Set up environment variables:
+```bash
+# Create .env file
+cat > .env << 'EOF'
+DATABASE_URL="file:./dev.db"
+BETTER_AUTH_SECRET="your-super-secret-key-change-this-in-production"
+BETTER_AUTH_URL="http://localhost:3000"
+EOF
+```
+
+4. Set up the database:
 ```bash
 # Generate Prisma client (requires internet access)
 npx prisma generate
 
-# Create and migrate the database
-npx prisma migrate dev --name init
+# Apply database migrations
+npx prisma migrate deploy
 
 # (Optional) Seed the database with sample data
 npx prisma db seed
 ```
 
-4. Start the development server:
+5. Start the development server:
 ```bash
 npm run dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Demo Account
+
+After seeding, you can sign in with:
+- **Email:** demo@ticketsaas.com
+- **Password:** demo1234
+
+For more details on authentication, see [AUTHENTICATION.md](./AUTHENTICATION.md).
 
 ## ⚠️ Important Note About Prisma
 
@@ -69,14 +90,17 @@ For development without database:
 
 The application uses SQLite for simplicity. The database schema includes:
 
-- **Users**: Store user information (sellers and buyers)
+- **Users**: Store user information with authentication data
+- **Sessions**: Manage user sessions for authentication
+- **Accounts**: Store password hashes and provider information
 - **Tickets**: Event ticket listings with price, date, location, and availability
 - **Purchases**: Transaction records linking buyers to tickets
 
 To reset the database:
 ```bash
 rm prisma/dev.db
-npx prisma migrate reset
+npx prisma migrate deploy
+npx prisma db seed
 ```
 
 To view the database with Prisma Studio:
@@ -84,7 +108,41 @@ To view the database with Prisma Studio:
 npx prisma studio
 ```
 
+## 🔐 Authentication
+
+The application uses **Better Auth** for comprehensive user authentication. Key features:
+
+- ✅ Email/password authentication with secure bcrypt hashing
+- ✅ Session management with automatic refresh
+- ✅ Protected routes for authenticated users only
+- ✅ User-specific dashboards showing only owned tickets and purchases
+
+**Available Auth Pages:**
+- `/auth/signup` - Create a new account
+- `/auth/login` - Sign in to existing account
+
+**Protected Routes (require authentication):**
+- `/dashboard` - View your tickets and purchases
+- `/tickets/create` - List new tickets
+- Purchase functionality on ticket detail pages
+
+For detailed authentication documentation, see [AUTHENTICATION.md](./AUTHENTICATION.md).
+
 ## 📱 Pages & Features
+
+### Authentication Pages
+
+#### Sign Up (`/auth/signup`)
+- Create new account with email and password
+- Name, email, and password validation
+- Automatic sign-in after registration
+- Redirect to dashboard upon success
+
+#### Sign In (`/auth/login`)
+- Email/password authentication
+- Error handling for invalid credentials
+- Session creation and management
+- Redirect to dashboard upon success
 
 ### Home Page (`/`)
 - Hero section with call-to-action buttons
@@ -106,15 +164,19 @@ npx prisma studio
 - Seller information
 - Location, date, and price details
 - Sold out handling
+- **Requires authentication to purchase**
 
 ### Create Ticket (`/tickets/create`)
+- **Protected route - requires authentication**
 - Comprehensive form to list new tickets
 - Fields for title, description, category, price, quantity, event date, and location
 - Client-side validation
 - Category selection (Concerts, Sports, Theater, Festivals, Other)
 - Date/time picker for event scheduling
+- Automatic seller assignment from authenticated user
 
 ### Dashboard (`/dashboard`)
+- **Protected route - requires authentication**
 - Overview statistics (listed tickets, total sales, purchases made, total spent)
 - Manage your listed tickets with detailed table view
 - View purchase history
@@ -124,13 +186,19 @@ npx prisma studio
 
 ## 🛠️ API Routes
 
+### Authentication
+- `POST /api/auth/sign-up` - Create a new user account
+- `POST /api/auth/sign-in` - Authenticate user
+- `POST /api/auth/sign-out` - End user session
+- `GET /api/auth/session` - Get current user session
+
 ### Tickets
 - `GET /api/tickets` - Fetch all tickets (with optional category filter)
-- `POST /api/tickets` - Create a new ticket listing
+- `POST /api/tickets` - Create a new ticket listing (**requires authentication**)
 - `GET /api/tickets/[id]` - Get ticket by ID
 
 ### Purchases
-- `POST /api/purchases` - Create a purchase (handles inventory management)
+- `POST /api/purchases` - Create a purchase (**requires authentication**, handles inventory management)
 - `GET /api/purchases` - Fetch all purchases
 
 All API routes return JSON responses and include proper error handling.
@@ -138,6 +206,7 @@ All API routes return JSON responses and include proper error handling.
 ## 🎨 UI Components & Design
 
 The application features:
+- **Authentication-aware navigation bar** with dynamic user state
 - **Responsive navigation bar** with logo and action buttons
 - **Category filter chips** for easy browsing
 - **Ticket cards** with gradient backgrounds and emoji icons
@@ -177,14 +246,40 @@ npm run lint
 
 ```prisma
 model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  name          String?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  tickets       Ticket[]
+  purchases     Purchase[]
+  sessions      Session[]
+  accounts      Account[]
+}
+
+model Session {
   id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  tickets   Ticket[]
-  purchases Purchase[]
+  userId    String
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id           String    @id @default(cuid())
+  userId       String
+  accountId    String
+  providerId   String
+  password     String?
+  accessToken  String?
+  refreshToken String?
+  idToken      String?
+  expiresAt    DateTime?
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Ticket {
@@ -215,7 +310,10 @@ model Purchase {
 
 ## 🎯 Future Enhancements
 
-- [ ] User authentication with NextAuth.js or Clerk
+- [x] User authentication with Better Auth ✅
+- [ ] OAuth providers (Google, GitHub)
+- [ ] Email verification
+- [ ] Two-factor authentication (2FA)
 - [ ] Payment integration (Stripe/PayPal)
 - [ ] Email notifications for purchases and sales
 - [ ] Advanced search with filters (price range, date range, location)
@@ -231,14 +329,18 @@ model Purchase {
 ## 🔐 Security Considerations
 
 For production deployment:
-- Implement proper authentication (NextAuth.js recommended)
-- Use secure password hashing (bcrypt)
-- Add CSRF protection
-- Implement rate limiting on API routes
-- Validate all user inputs server-side
-- Use environment variables for sensitive data
-- Enable HTTPS only
-- Implement proper authorization checks
+- ✅ **Authentication**: Implemented with Better Auth (bcrypt password hashing)
+- ✅ **Session Management**: Secure session tokens with automatic expiration
+- ✅ **CSRF Protection**: Built-in with Better Auth
+- ✅ **Authorization**: User-specific data isolation
+- 🔄 **Rate Limiting**: Implement rate limiting on API routes
+- ✅ **Input Validation**: Server-side validation on all user inputs
+- ✅ **Environment Variables**: Sensitive data stored in .env
+- 🔄 **HTTPS**: Enable HTTPS only in production
+- 🔄 **Email Verification**: Consider enabling for production
+- 🔄 **2FA**: Consider adding two-factor authentication
+
+See [AUTHENTICATION.md](./AUTHENTICATION.md) for detailed security features.
 
 ## 📄 License
 
@@ -253,11 +355,13 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 For issues or questions:
 - Open an issue on GitHub
 - Check the documentation above
+- Review [AUTHENTICATION.md](./AUTHENTICATION.md) for auth-related questions
 - Review the code comments for implementation details
 
 ## 🙏 Acknowledgments
 
 - Built with Next.js 15
+- Authentication powered by Better Auth
 - Styled with Tailwind CSS 4
 - Database powered by Prisma
 - Icons use emoji for simplicity and universal support
