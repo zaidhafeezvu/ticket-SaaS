@@ -2,11 +2,15 @@
 // Run with: npx prisma db seed
 
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Seeding database...');
+
+  // Hash password for demo user
+  const hashedPassword = await bcrypt.hash('demo1234', 10);
 
   // Create a demo user
   const user = await prisma.user.upsert({
@@ -15,11 +19,29 @@ async function main() {
     create: {
       email: 'demo@ticketsaas.com',
       name: 'Demo User',
-      password: 'hashed_password_demo', // In production, use proper password hashing
+      emailVerified: true,
+    },
+  });
+
+  // Create account with password for demo user
+  await prisma.account.upsert({
+    where: {
+      providerId_accountId: {
+        providerId: 'credential',
+        accountId: user.id,
+      },
+    },
+    update: {},
+    create: {
+      userId: user.id,
+      accountId: user.id,
+      providerId: 'credential',
+      password: hashedPassword,
     },
   });
 
   console.log('✅ Created demo user:', user.email);
+  console.log('   Password: demo1234');
 
   // Create sample tickets
   const tickets = [

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Ticket } from "@/types";
+import { prisma } from "@/lib/prisma";
+import { Navbar } from "@/components/navbar";
 
 export const dynamic = 'force-dynamic';
 
@@ -11,36 +13,26 @@ export default async function TicketsPage({
   const params = await searchParams;
   const category = params.category;
 
-  // For build purposes, we'll use an empty array
-  // In production with database, this will fetch actual tickets
-  const tickets: Ticket[] = [];
+  // Fetch tickets from database
+  const tickets: Ticket[] = await prisma.ticket.findMany({
+    where: category ? { category } : {},
+    include: {
+      seller: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  }) as unknown as Ticket[];
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
-      <nav className="border-b bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold text-blue-600">
-              🎫 TicketSaaS
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link href="/tickets" className="text-blue-600 font-semibold">
-                Browse Tickets
-              </Link>
-              <Link href="/dashboard" className="text-gray-700 hover:text-blue-600">
-                Dashboard
-              </Link>
-              <Link
-                href="/tickets/create"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-              >
-                Sell Tickets
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">

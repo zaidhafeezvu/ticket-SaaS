@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Navbar } from "@/components/navbar";
+import { useSession } from "@/lib/auth-client";
 
 export default function CreateTicketPage() {
   const router = useRouter();
+  const { data: session, isPending } = useSession();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -16,6 +19,27 @@ export default function CreateTicketPage() {
     category: "concerts",
     quantity: "1",
   });
+
+  useEffect(() => {
+    if (!isPending && !session) {
+      router.push("/auth/login");
+    }
+  }, [session, isPending, router]);
+
+  if (isPending) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Navbar />
+        <div className="max-w-7xl mx-auto px-4 py-16 text-center">
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +62,8 @@ export default function CreateTicketPage() {
         const ticket = await response.json();
         router.push(`/tickets/${ticket.id}`);
       } else {
-        alert("Failed to create ticket");
+        const error = await response.json();
+        alert(error.error || "Failed to create ticket");
       }
     } catch (error) {
       console.error("Error creating ticket:", error);
@@ -60,23 +85,7 @@ export default function CreateTicketPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
-      <nav className="border-b bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold text-blue-600">
-              🎫 TicketSaaS
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link href="/tickets" className="text-gray-700 hover:text-blue-600">
-                Browse Tickets
-              </Link>
-              <Link href="/dashboard" className="text-gray-700 hover:text-blue-600">
-                Dashboard
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">

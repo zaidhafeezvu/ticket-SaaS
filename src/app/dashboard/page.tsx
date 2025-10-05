@@ -1,43 +1,72 @@
 import Link from "next/link";
 import type { Ticket, Purchase } from "@/types";
+import { getSession } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { Navbar } from "@/components/navbar";
 
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
-  // For build purposes, we'll use mock data
-  // In production, this will fetch from the database
-  const tickets: Ticket[] = [];
-  const purchases: Purchase[] = [];
+  // Check authentication
+  const session = await getSession();
+  
+  if (!session) {
+    redirect("/auth/login");
+  }
 
-  const totalSales = 0;
-  const totalPurchases = 0;
+  // Fetch user's tickets
+  const tickets: Ticket[] = await prisma.ticket.findMany({
+    where: {
+      sellerId: session.user.id,
+    },
+    include: {
+      purchases: true,
+      seller: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  }) as unknown as Ticket[];
+
+  // Fetch user's purchases
+  const purchases: Purchase[] = await prisma.purchase.findMany({
+    where: {
+      buyerId: session.user.id,
+    },
+    include: {
+      ticket: true,
+      buyer: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  }) as unknown as Purchase[];
+
+  // Calculate totals
+  const totalSales = tickets.reduce((sum, ticket) => {
+    const sold = ticket.quantity - ticket.available;
+    return sum + (sold * ticket.price);
+  }, 0);
+
+  const totalPurchases = purchases.reduce((sum, purchase) => {
+    return sum + purchase.totalPrice;
+  }, 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
-      <nav className="border-b bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="text-2xl font-bold text-blue-600">
-              🎫 TicketSaaS
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link href="/tickets" className="text-gray-700 hover:text-blue-600">
-                Browse Tickets
-              </Link>
-              <Link href="/dashboard" className="text-blue-600 font-semibold">
-                Dashboard
-              </Link>
-              <Link
-                href="/tickets/create"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-              >
-                Sell Tickets
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
