@@ -1,11 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { rateLimit } from "@/lib/rate-limit";
+
+// Rate limiter for individual ticket GET
+const getTicketLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 60, // 60 requests per minute
+});
 
 // GET ticket by ID
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
+  // Apply rate limiting
+  const rateLimitResponse = await getTicketLimiter(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const { id } = await context.params;
     

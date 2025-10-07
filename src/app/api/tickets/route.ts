@@ -1,9 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
+
+// Rate limiters
+const getTicketsLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 30, // 30 requests per minute
+});
+
+const createTicketLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 10, // 10 requests per minute
+});
 
 // GET all tickets
 export async function GET(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResponse = await getTicketsLimiter(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
   try {
     const searchParams = request.nextUrl.searchParams;
     const category = searchParams.get("category");
@@ -35,6 +52,12 @@ export async function GET(request: NextRequest) {
 
 // POST create a new ticket
 export async function POST(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResponse = await createTicketLimiter(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     // Check authentication
     const session = await auth.api.getSession({
