@@ -96,7 +96,7 @@ Updated Prisma schema to support Better Auth:
 
 ## Demo Credentials
 
-After running `npx prisma db seed`:
+After running `bunx prisma db seed`:
 - **Email:** demo@ticketsaas.com
 - **Password:** demo1234
 

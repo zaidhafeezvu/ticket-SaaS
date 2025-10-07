@@ -1,5 +1,5 @@
 // Prisma seed file for sample data
-// Run with: npx prisma db seed
+// Run with: bunx prisma db seed
 
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';

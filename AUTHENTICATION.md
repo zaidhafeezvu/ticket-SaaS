@@ -17,7 +17,7 @@ This application uses [Better Auth](https://www.better-auth.com/) for comprehens
 Create a `.env` file in the root directory:
 
 ```env
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://user:password@localhost:5432/ticketsaas"
 BETTER_AUTH_SECRET="your-super-secret-key-change-this-in-production"
 BETTER_AUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000"
@@ -39,10 +39,10 @@ Run the database migrations:
 
 ```bash
 # Apply migrations
-npx prisma migrate deploy
+bunx prisma migrate deploy
 
 # Seed with sample data (optional)
-npx prisma db seed
+bunx prisma db seed
 ```
 
 ### 3. Demo Account
