@@ -5,6 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { useSession } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function CreateTicketPage() {
   const router = useRouter();
@@ -28,10 +34,10 @@ export default function CreateTicketPage() {
 
   if (isPending) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 py-16 text-center">
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -74,7 +80,7 @@ export default function CreateTicketPage() {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setFormData({
       ...formData,
@@ -83,159 +89,147 @@ export default function CreateTicketPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Navigation */}
       <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <Link href="/tickets" className="text-blue-600 hover:underline">
-            ← Back to Tickets
-          </Link>
+          <Button variant="ghost" asChild>
+            <Link href="/tickets">
+              ← Back to Tickets
+            </Link>
+          </Button>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md p-8">
-          <h1 className="text-3xl font-bold mb-6">List Your Tickets</h1>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-                Event Title *
-              </label>
-              <input
-                type="text"
-                id="title"
-                name="title"
-                required
-                value={formData.title}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="e.g., Taylor Swift - Eras Tour"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                Description *
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                required
-                value={formData.description}
-                onChange={handleChange}
-                rows={4}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Provide details about the event and tickets..."
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-                  Category *
-                </label>
-                <select
-                  id="category"
-                  name="category"
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-3xl">List Your Tickets</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="title">Event Title *</Label>
+                <Input
+                  type="text"
+                  id="title"
+                  name="title"
                   required
-                  value={formData.category}
+                  value={formData.title}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="e.g., Taylor Swift - Eras Tour"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description *</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  required
+                  value={formData.description}
+                  onChange={handleChange}
+                  rows={4}
+                  placeholder="Provide details about the event and tickets..."
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="category">Category *</Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, category: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="concerts">🎵 Concerts</SelectItem>
+                      <SelectItem value="sports">⚽ Sports</SelectItem>
+                      <SelectItem value="theater">🎭 Theater</SelectItem>
+                      <SelectItem value="festivals">🎉 Festivals</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="eventDate">Event Date *</Label>
+                  <Input
+                    type="datetime-local"
+                    id="eventDate"
+                    name="eventDate"
+                    required
+                    value={formData.eventDate}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="location">Location *</Label>
+                <Input
+                  type="text"
+                  id="location"
+                  name="location"
+                  required
+                  value={formData.location}
+                  onChange={handleChange}
+                  placeholder="e.g., Madison Square Garden, New York"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="price">Price per Ticket ($) *</Label>
+                  <Input
+                    type="number"
+                    id="price"
+                    name="price"
+                    required
+                    min="0"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={handleChange}
+                    placeholder="99.99"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="quantity">Quantity *</Label>
+                  <Input
+                    type="number"
+                    id="quantity"
+                    name="quantity"
+                    required
+                    min="1"
+                    value={formData.quantity}
+                    onChange={handleChange}
+                    placeholder="1"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1"
                 >
-                  <option value="concerts">🎵 Concerts</option>
-                  <option value="sports">⚽ Sports</option>
-                  <option value="theater">🎭 Theater</option>
-                  <option value="festivals">🎉 Festivals</option>
-                  <option value="other">Other</option>
-                </select>
+                  {loading ? "Creating..." : "List Tickets"}
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link href="/tickets">
+                    Cancel
+                  </Link>
+                </Button>
               </div>
-
-              <div>
-                <label htmlFor="eventDate" className="block text-sm font-medium text-gray-700 mb-2">
-                  Event Date *
-                </label>
-                <input
-                  type="datetime-local"
-                  id="eventDate"
-                  name="eventDate"
-                  required
-                  value={formData.eventDate}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
-                Location *
-              </label>
-              <input
-                type="text"
-                id="location"
-                name="location"
-                required
-                value={formData.location}
-                onChange={handleChange}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="e.g., Madison Square Garden, New York"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
-                  Price per Ticket ($) *
-                </label>
-                <input
-                  type="number"
-                  id="price"
-                  name="price"
-                  required
-                  min="0"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="99.99"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-2">
-                  Quantity *
-                </label>
-                <input
-                  type="number"
-                  id="quantity"
-                  name="quantity"
-                  required
-                  min="1"
-                  value={formData.quantity}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="1"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold"
-              >
-                {loading ? "Creating..." : "List Tickets"}
-              </button>
-              <Link
-                href="/tickets"
-                className="px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 font-semibold text-gray-700"
-              >
-                Cancel
-              </Link>
-            </div>
-          </form>
-        </div>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
