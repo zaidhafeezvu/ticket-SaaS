@@ -11,7 +11,7 @@ A modern, full-featured SaaS platform for buying and selling event tickets built
 - **Purchase Management**: Complete purchase flow with transaction history
 - **Dashboard**: Comprehensive dashboard to manage your listed tickets and purchases
 - **Responsive Design**: Beautiful, mobile-friendly UI built with Tailwind CSS
-- **Database Management**: SQLite database with Prisma ORM for data persistence
+- **Database Management**: PostgreSQL database with Prisma ORM for data persistence
 - **Protected Routes**: Authentication-required pages for selling and purchasing
 
 ## 🚀 Tech Stack
@@ -20,7 +20,7 @@ A modern, full-featured SaaS platform for buying and selling event tickets built
 - **Language**: TypeScript
 - **Authentication**: Better Auth with email/password
 - **Styling**: Tailwind CSS 4
-- **Database**: SQLite with Prisma ORM
+- **Database**: PostgreSQL with Prisma ORM
 - **API**: Next.js API Routes (REST)
 
 ## 📦 Installation
@@ -33,14 +33,14 @@ cd ticket-SaaS
 
 2. Install dependencies:
 ```bash
-npm install
+bun install
 ```
 
 3. Set up environment variables:
 ```bash
 # Create .env file
 cat > .env << 'EOF'
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://user:password@localhost:5432/ticketsaas"
 BETTER_AUTH_SECRET="your-super-secret-key-change-this-in-production"
 BETTER_AUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000"
@@ -52,18 +52,18 @@ EOF
 4. Set up the database:
 ```bash
 # Generate Prisma client (requires internet access)
-npx prisma generate
+bunx prisma generate
 
 # Apply database migrations
-npx prisma migrate deploy
+bunx prisma migrate deploy
 
 # (Optional) Seed the database with sample data
-npx prisma db seed
+bunx prisma db seed
 ```
 
 5. Start the development server:
 ```bash
-npm run dev
+bun run dev
 ```
 
 6. Open [http://localhost:3000](http://localhost:3000) in your browser.
@@ -91,7 +91,7 @@ For development without database:
 
 ## 🗄️ Database Setup
 
-The application uses SQLite for simplicity. The database schema includes:
+The application uses PostgreSQL for production-ready database management. The database schema includes:
 
 - **Users**: Store user information with authentication data
 - **Sessions**: Manage user sessions for authentication
@@ -101,14 +101,12 @@ The application uses SQLite for simplicity. The database schema includes:
 
 To reset the database:
 ```bash
-rm prisma/dev.db
-npx prisma migrate deploy
-npx prisma db seed
+bunx prisma migrate reset
 ```
 
 To view the database with Prisma Studio:
 ```bash
-npx prisma studio
+bunx prisma studio
 ```
 
 ## 🔐 Authentication
@@ -225,24 +223,24 @@ The application features:
 Create a `.env` file in the root directory:
 
 ```env
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://user:password@localhost:5432/ticketsaas"
 ```
 
 ## 🔧 Development
 
 Build the application:
 ```bash
-npm run build
+bun run build
 ```
 
 Start the production server:
 ```bash
-npm run start
+bun run start
 ```
 
 Run linting:
 ```bash
-npm run lint
+bun run lint
 ```
 
 ## 📊 Database Schema

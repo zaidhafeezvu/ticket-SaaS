@@ -5,7 +5,7 @@ This guide will help you set up the Ticket Marketplace SaaS application.
 ## Prerequisites
 
 - Node.js 18 or higher
-- npm or yarn
+- bun (package manager)
 - Internet connection (for initial Prisma setup)
 
 ## Step-by-Step Setup
@@ -15,7 +15,7 @@ This guide will help you set up the Ticket Marketplace SaaS application.
 ```bash
 git clone https://github.com/zaidhafeezvu/ticket-SaaS.git
 cd ticket-SaaS
-npm install
+bun install
 ```
 
 ### 2. Set Up Environment Variables
@@ -23,7 +23,7 @@ npm install
 Create a `.env` file in the root directory:
 
 ```bash
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://user:password@localhost:5432/ticketsaas"
 BETTER_AUTH_SECRET="your-super-secret-key-change-this-in-production"
 BETTER_AUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000"
@@ -36,7 +36,7 @@ NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000"
 This step requires internet access to download Prisma engines:
 
 ```bash
-npx prisma generate
+bunx prisma generate
 ```
 
 If this step fails due to network restrictions, you can:
@@ -47,11 +47,11 @@ If this step fails due to network restrictions, you can:
 ### 4. Initialize the Database
 
 ```bash
-npx prisma migrate dev --name init
+bunx prisma migrate dev --name init
 ```
 
 This will:
-- Create the SQLite database file (`prisma/dev.db`)
+- Create the PostgreSQL database tables
 - Apply the schema migrations
 - Create tables for Users, Tickets, and Purchases
 
@@ -60,7 +60,7 @@ This will:
 You can manually create sample data through the UI or use Prisma Studio:
 
 ```bash
-npx prisma studio
+bunx prisma studio
 ```
 
 This opens a browser interface where you can:
@@ -71,7 +71,7 @@ This opens a browser interface where you can:
 ### 6. Start Development Server
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 Visit http://localhost:3000 to see your application!
@@ -80,12 +80,12 @@ Visit http://localhost:3000 to see your application!
 
 ### Prisma Engine Download Issues
 
-If `npx prisma generate` fails:
+If `bunx prisma generate` fails:
 
 **Solution 1: Use a mirror**
 ```bash
 export PRISMA_ENGINES_MIRROR=https://your-mirror-url
-npx prisma generate
+bunx prisma generate
 ```
 
 **Solution 2: Manual download**
@@ -104,11 +104,10 @@ If you get database errors:
 
 ```bash
 # Reset the database
-rm prisma/dev.db
-npx prisma migrate reset
+bunx prisma migrate reset
 
 # Or just migrate again
-npx prisma migrate dev
+bunx prisma migrate dev
 ```
 
 ### Build Errors
@@ -120,7 +119,7 @@ If the build fails:
 rm -rf .next
 
 # Rebuild
-npm run build
+bun run build
 ```
 
 ## Production Deployment
@@ -128,13 +127,13 @@ npm run build
 ### 1. Build for Production
 
 ```bash
-npm run build
+bun run build
 ```
 
 ### 2. Start Production Server
 
 ```bash
-npm run start
+bun run start
 ```
 
 ### 3. Deployment Platforms
@@ -143,7 +142,7 @@ This app can be deployed to:
 
 **Vercel (Recommended)**
 ```bash
-npm install -g vercel
+bun install -g vercel
 vercel
 ```
 
