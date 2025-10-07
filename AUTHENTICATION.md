@@ -20,12 +20,18 @@ Create a `.env` file in the root directory:
 DATABASE_URL="file:./dev.db"
 BETTER_AUTH_SECRET="your-super-secret-key-change-this-in-production"
 BETTER_AUTH_URL="http://localhost:3000"
+NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000"
 ```
 
 **Important:** Change `BETTER_AUTH_SECRET` to a strong, random string in production. You can generate one with:
 ```bash
 openssl rand -base64 32
 ```
+
+**For Production Deployment:**
+- Set `BETTER_AUTH_URL` to your production domain (e.g., `https://yourdomain.com`)
+- Leave `NEXT_PUBLIC_BETTER_AUTH_URL` unset (recommended) or set it to your production domain
+- When `NEXT_PUBLIC_BETTER_AUTH_URL` is not set, the app uses relative URLs which automatically work with your deployment
 
 ### 2. Database Setup
 
@@ -210,12 +216,22 @@ export async function POST(request: NextRequest) {
 
 ## Production Considerations
 
-1. **Secret Key:** Use a strong, random secret key
+1. **Environment Variables:**
+   - Generate a strong secret key: `openssl rand -base64 32`
+   - Set `BETTER_AUTH_URL` to your production domain (e.g., `https://yourdomain.com`)
+   - Leave `NEXT_PUBLIC_BETTER_AUTH_URL` unset to use relative URLs (recommended for production)
+   - Keep `DATABASE_URL` and `BETTER_AUTH_SECRET` secure
+
 2. **HTTPS:** Always use HTTPS in production
+
 3. **Email Verification:** Consider enabling email verification for production
+
 4. **Rate Limiting:** Implement rate limiting on auth endpoints
+
 5. **Password Policy:** Enforce stronger password requirements
+
 6. **Session Timeout:** Adjust session expiration based on your security needs
+
 7. **Multi-Factor Authentication:** Consider adding 2FA for additional security
 
 ## Troubleshooting
@@ -224,11 +240,16 @@ export async function POST(request: NextRequest) {
 - Ensure you're signed in
 - Check that session hasn't expired
 - Verify BETTER_AUTH_SECRET is set correctly
+- Verify BETTER_AUTH_URL is set to your domain in production
 
 ### Cannot create tickets/purchases
 - Verify you're authenticated
 - Check API route is receiving session correctly
 - Review browser console for errors
+
+### Auth requests going to localhost in production
+- Remove or don't set `NEXT_PUBLIC_BETTER_AUTH_URL` in production (app will use relative URLs)
+- If you need to set it explicitly, use your production domain (e.g., `https://yourdomain.com`)
 
 ### Session not persisting
 - Check that cookies are enabled

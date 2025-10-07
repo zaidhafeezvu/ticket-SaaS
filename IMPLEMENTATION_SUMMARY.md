@@ -116,8 +116,9 @@ Before deploying to production:
 
 1. **Environment Variables**
    - Generate strong secret: `openssl rand -base64 32`
-   - Set proper BETTER_AUTH_URL for your domain
-   - Keep DATABASE_URL secure
+   - Set `BETTER_AUTH_URL` to your production domain (e.g., `https://yourdomain.com`)
+   - Leave `NEXT_PUBLIC_BETTER_AUTH_URL` unset (recommended) to use relative URLs
+   - Keep `DATABASE_URL` and `BETTER_AUTH_SECRET` secure
 
 2. **Security Enhancements**
    - Enable email verification
