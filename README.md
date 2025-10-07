@@ -334,12 +334,34 @@ For production deployment:
 - ✅ **Session Management**: Secure session tokens with automatic expiration
 - ✅ **CSRF Protection**: Built-in with Better Auth
 - ✅ **Authorization**: User-specific data isolation
-- 🔄 **Rate Limiting**: Implement rate limiting on API routes
+- ✅ **Rate Limiting**: In-memory rate limiting on all API routes (see below)
 - ✅ **Input Validation**: Server-side validation on all user inputs
 - ✅ **Environment Variables**: Sensitive data stored in .env
 - 🔄 **HTTPS**: Enable HTTPS only in production
 - 🔄 **Email Verification**: Consider enabling for production
 - 🔄 **2FA**: Consider adding two-factor authentication
+
+### Rate Limiting Details
+
+All API routes are protected with rate limiting to prevent abuse:
+
+**Authentication Endpoints** (`/api/auth/*`):
+- Limit: 20 requests per 15 minutes per IP
+- Prevents brute force attacks
+
+**Ticket Endpoints**:
+- `GET /api/tickets`: 30 requests per minute
+- `POST /api/tickets`: 10 requests per minute
+- `GET /api/tickets/[id]`: 60 requests per minute
+
+**Purchase Endpoints**:
+- `POST /api/purchases`: 5 requests per minute (strict to prevent abuse)
+- `GET /api/purchases`: 30 requests per minute
+
+Rate limit responses include:
+- `429 Too Many Requests` status code
+- `Retry-After` header indicating when to retry
+- `X-RateLimit-*` headers with limit information
 
 See [AUTHENTICATION.md](./AUTHENTICATION.md) for detailed security features.
 

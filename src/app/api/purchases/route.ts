@@ -2,9 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
+
+// Rate limiters
+const createPurchaseLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 5, // 5 purchases per minute (stricter to prevent abuse)
+});
+
+const getPurchasesLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 30, // 30 requests per minute
+});
 
 // POST create a purchase
 export async function POST(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResponse = await createPurchaseLimiter(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     // Check authentication
     const session = await auth.api.getSession({
@@ -92,7 +110,13 @@ export async function POST(request: NextRequest) {
 }
 
 // GET all purchases
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Apply rate limiting
+  const rateLimitResponse = await getPurchasesLimiter(request);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   try {
     const purchases = await prisma.purchase.findMany({
       include: {

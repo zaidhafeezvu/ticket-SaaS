@@ -148,7 +148,50 @@ model Account {
 - All protected routes check for valid session
 - User data is isolated (users can only access their own tickets and purchases)
 - CSRF protection via Better Auth
-- Rate limiting recommended for production
+- **Rate limiting implemented on all API routes** (see below)
+
+### Rate Limiting
+
+All API endpoints are protected with rate limiting to prevent abuse and ensure fair usage:
+
+**Implementation:**
+- In-memory rate limiting based on client IP address
+- Sliding window approach for accurate rate limiting
+- Automatic cleanup of expired rate limit records
+
+**Authentication Endpoints** (`/api/auth/*`):
+- **Limit:** 20 requests per 15 minutes per IP address
+- **Purpose:** Prevents brute force attacks and credential stuffing
+
+**Ticket Endpoints:**
+- `GET /api/tickets`: 30 requests per minute
+- `POST /api/tickets` (create): 10 requests per minute
+- `GET /api/tickets/[id]`: 60 requests per minute
+
+**Purchase Endpoints:**
+- `POST /api/purchases` (create): 5 requests per minute (strict limit to prevent abuse)
+- `GET /api/purchases`: 30 requests per minute
+
+**Rate Limit Response:**
+When rate limit is exceeded, the API returns:
+```json
+{
+  "error": "Too many requests. Please try again later.",
+  "retryAfter": 45
+}
+```
+
+**Response Headers:**
+- `Status: 429 Too Many Requests`
+- `Retry-After`: Seconds until the rate limit resets
+- `X-RateLimit-Limit`: Maximum number of requests allowed
+- `X-RateLimit-Remaining`: Number of requests remaining (0 when limited)
+- `X-RateLimit-Reset`: ISO timestamp when the rate limit resets
+
+**Production Considerations:**
+- For production with multiple servers, consider using Redis or a distributed cache
+- Current implementation uses in-memory storage (resets on server restart)
+- IP-based limiting may need adjustment if behind a proxy/load balancer
 
 ## Client-Side Usage
 
@@ -226,7 +269,11 @@ export async function POST(request: NextRequest) {
 
 3. **Email Verification:** Consider enabling email verification for production
 
-4. **Rate Limiting:** Implement rate limiting on auth endpoints
+4. **Rate Limiting:** 
+   - ✅ Implemented on all API routes with in-memory storage
+   - For production at scale, consider using Redis or a distributed cache for rate limiting
+   - Adjust rate limits based on your application's needs
+   - If behind a proxy/load balancer, ensure proper IP forwarding headers are set
 
 5. **Password Policy:** Enforce stronger password requirements
 
