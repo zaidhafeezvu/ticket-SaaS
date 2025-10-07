@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function Navbar() {
   const router = useRouter();
@@ -16,16 +18,16 @@ export function Navbar() {
   };
 
   return (
-    <nav className="border-b bg-white shadow-sm">
+    <nav className="border-b bg-background shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className="text-2xl font-bold text-blue-600">
+          <Link href="/" className="text-2xl font-bold text-primary">
             🎫 TicketSaaS
           </Link>
           <div className="flex items-center gap-4">
             <Link
               href="/tickets"
-              className="text-gray-700 hover:text-blue-600 transition-colors"
+              className="text-foreground hover:text-primary transition-colors"
             >
               Browse Tickets
             </Link>
@@ -36,46 +38,45 @@ export function Navbar() {
                   <>
                     <Link
                       href="/dashboard"
-                      className="text-gray-700 hover:text-blue-600 transition-colors"
+                      className="text-foreground hover:text-primary transition-colors"
                     >
                       Dashboard
                     </Link>
-                    <Link
-                      href="/tickets/create"
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      Sell Tickets
-                    </Link>
+                    <Button asChild>
+                      <Link href="/tickets/create">
+                        Sell Tickets
+                      </Link>
+                    </Button>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm text-gray-700">
+                      <span className="text-sm text-muted-foreground">
                         {session.user.email}
                       </span>
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={handleSignOut}
-                        className="text-sm text-gray-700 hover:text-blue-600 transition-colors"
                       >
                         Sign Out
-                      </button>
+                      </Button>
                     </div>
                   </>
                 ) : (
                   <>
-                    <Link
-                      href="/auth/login"
-                      className="text-gray-700 hover:text-blue-600 transition-colors"
-                    >
-                      Sign In
-                    </Link>
-                    <Link
-                      href="/auth/signup"
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      Sign Up
-                    </Link>
+                    <Button variant="ghost" asChild>
+                      <Link href="/auth/login">
+                        Sign In
+                      </Link>
+                    </Button>
+                    <Button asChild>
+                      <Link href="/auth/signup">
+                        Sign Up
+                      </Link>
+                    </Button>
                   </>
                 )}
               </>
             )}
+            <ThemeToggle />
           </div>
         </div>
       </div>

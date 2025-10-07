@@ -5,6 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { useSession } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 
 interface Ticket {
   id: string;
@@ -92,10 +97,10 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <div className="flex items-center justify-center py-16">
-          <div className="text-2xl">Loading...</div>
+          <div className="text-2xl text-muted-foreground">Loading...</div>
         </div>
       </div>
     );
@@ -103,13 +108,15 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
 
   if (!ticket) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
           <h1 className="text-3xl font-bold mb-4">Ticket not found</h1>
-          <Link href="/tickets" className="text-blue-600 hover:underline">
-            ← Back to Tickets
-          </Link>
+          <Button variant="ghost" asChild>
+            <Link href="/tickets">
+              ← Back to Tickets
+            </Link>
+          </Button>
         </div>
       </div>
     );
@@ -124,15 +131,17 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
   }[ticket.category] || "🎫";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Navigation */}
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <Link href="/tickets" className="text-blue-600 hover:underline">
-            ← Back to Tickets
-          </Link>
+          <Button variant="ghost" asChild>
+            <Link href="/tickets">
+              ← Back to Tickets
+            </Link>
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -145,111 +154,118 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
           <div className="space-y-6">
             <div>
               <div className="flex items-start justify-between mb-2">
-                <h1 className="text-4xl font-bold text-gray-900">{ticket.title}</h1>
-                <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-semibold">
+                <h1 className="text-4xl font-bold text-foreground">{ticket.title}</h1>
+                <Badge variant="secondary">
                   {ticket.category}
-                </span>
+                </Badge>
               </div>
-              <p className="text-gray-600 text-lg">{ticket.description}</p>
+              <p className="text-muted-foreground text-lg">{ticket.description}</p>
             </div>
 
-            <div className="bg-white rounded-lg p-6 shadow-md space-y-4">
-              <div className="flex items-center text-gray-700">
-                <span className="text-2xl mr-3">📍</span>
-                <div>
-                  <div className="text-sm text-gray-500">Location</div>
-                  <div className="font-semibold">{ticket.location}</div>
-                </div>
-              </div>
-
-              <div className="flex items-center text-gray-700">
-                <span className="text-2xl mr-3">📅</span>
-                <div>
-                  <div className="text-sm text-gray-500">Event Date</div>
-                  <div className="font-semibold">
-                    {new Date(ticket.eventDate).toLocaleDateString("en-US", {
-                      weekday: "long",
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center text-gray-700">
-                <span className="text-2xl mr-3">💰</span>
-                <div>
-                  <div className="text-sm text-gray-500">Price per Ticket</div>
-                  <div className="font-bold text-2xl text-blue-600">${ticket.price.toFixed(2)}</div>
-                </div>
-              </div>
-
-              <div className="flex items-center text-gray-700">
-                <span className="text-2xl mr-3">🎫</span>
-                <div>
-                  <div className="text-sm text-gray-500">Availability</div>
-                  <div className="font-semibold">
-                    {ticket.available} of {ticket.quantity} tickets available
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Purchase Section */}
-            <div className="bg-white rounded-lg p-6 shadow-md">
-              <h2 className="text-xl font-bold mb-4">Purchase Tickets</h2>
-              
-              {ticket.available > 0 ? (
-                <div className="space-y-4">
+            <Card>
+              <CardContent className="pt-6 space-y-4">
+                <div className="flex items-center">
+                  <span className="text-2xl mr-3">📍</span>
                   <div>
-                    <label htmlFor="quantity" className="block text-sm font-medium text-gray-700 mb-2">
-                      Quantity
-                    </label>
-                    <input
-                      type="number"
-                      id="quantity"
-                      min="1"
-                      max={ticket.available}
-                      value={purchaseQuantity}
-                      onChange={(e) => setPurchaseQuantity(parseInt(e.target.value) || 1)}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                    />
+                    <div className="text-sm text-muted-foreground">Location</div>
+                    <div className="font-semibold">{ticket.location}</div>
                   </div>
+                </div>
 
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <div className="flex justify-between items-center text-lg">
-                      <span className="font-semibold">Total:</span>
-                      <span className="font-bold text-blue-600 text-2xl">
-                        ${totalPrice.toFixed(2)}
-                      </span>
+                <div className="flex items-center">
+                  <span className="text-2xl mr-3">📅</span>
+                  <div>
+                    <div className="text-sm text-muted-foreground">Event Date</div>
+                    <div className="font-semibold">
+                      {new Date(ticket.eventDate).toLocaleDateString("en-US", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </div>
                   </div>
+                </div>
 
-                  <button
-                    onClick={handlePurchase}
-                    disabled={purchasing || purchaseQuantity > ticket.available}
-                    className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold text-lg"
-                  >
-                    {purchasing ? "Processing..." : "Buy Now"}
-                  </button>
+                <div className="flex items-center">
+                  <span className="text-2xl mr-3">💰</span>
+                  <div>
+                    <div className="text-sm text-muted-foreground">Price per Ticket</div>
+                    <div className="font-bold text-2xl text-primary">${ticket.price.toFixed(2)}</div>
+                  </div>
                 </div>
-              ) : (
-                <div className="text-center py-4">
-                  <p className="text-red-600 font-semibold text-lg">Sold Out</p>
-                  <p className="text-gray-600 mt-2">This event is currently sold out.</p>
+
+                <div className="flex items-center">
+                  <span className="text-2xl mr-3">🎫</span>
+                  <div>
+                    <div className="text-sm text-muted-foreground">Availability</div>
+                    <div className="font-semibold">
+                      {ticket.available} of {ticket.quantity} tickets available
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
+              </CardContent>
+            </Card>
+
+            {/* Purchase Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Purchase Tickets</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {ticket.available > 0 ? (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="quantity">Quantity</Label>
+                      <Input
+                        type="number"
+                        id="quantity"
+                        min="1"
+                        max={ticket.available}
+                        value={purchaseQuantity}
+                        onChange={(e) => setPurchaseQuantity(parseInt(e.target.value) || 1)}
+                      />
+                    </div>
+
+                    <Card className="bg-primary/5 border-primary/20">
+                      <CardContent className="pt-6">
+                        <div className="flex justify-between items-center text-lg">
+                          <span className="font-semibold">Total:</span>
+                          <span className="font-bold text-primary text-2xl">
+                            ${totalPrice.toFixed(2)}
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Button
+                      onClick={handlePurchase}
+                      disabled={purchasing || purchaseQuantity > ticket.available}
+                      className="w-full"
+                      size="lg"
+                    >
+                      {purchasing ? "Processing..." : "Buy Now"}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-destructive font-semibold text-lg">Sold Out</p>
+                    <p className="text-muted-foreground mt-2">This event is currently sold out.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Seller Info */}
-            <div className="bg-gray-100 rounded-lg p-4">
-              <div className="text-sm text-gray-600">
-                Listed by: <span className="font-semibold">{ticket.seller.name || ticket.seller.email}</span>
-              </div>
-            </div>
+            <Card className="bg-muted">
+              <CardContent className="pt-6">
+                <div className="text-sm text-muted-foreground">
+                  Listed by: <span className="font-semibold text-foreground">{ticket.seller.name || ticket.seller.email}</span>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
