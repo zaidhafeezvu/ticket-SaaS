@@ -1,66 +1,78 @@
 import Link from "next/link";
 import { Navbar } from "@/components/navbar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-background dark:from-blue-950/20 dark:to-background">
       {/* Navigation */}
       <Navbar />
 
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center">
-          <h1 className="text-5xl font-bold text-gray-900 mb-6">
+          <h1 className="text-5xl font-bold text-foreground mb-6">
             Buy and Sell Event Tickets
           </h1>
-          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
             The trusted marketplace for concert tickets, sports events, theater shows, and more.
             Safe, secure, and simple.
           </p>
           <div className="flex gap-4 justify-center">
-            <Link 
-              href="/tickets" 
-              className="bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-blue-700 transition-colors"
-            >
-              Browse Tickets
-            </Link>
-            <Link 
-              href="/tickets/create" 
-              className="bg-white text-blue-600 px-8 py-3 rounded-lg text-lg font-semibold border-2 border-blue-600 hover:bg-blue-50 transition-colors"
-            >
-              List Your Tickets
-            </Link>
+            <Button size="lg" asChild>
+              <Link href="/tickets">
+                Browse Tickets
+              </Link>
+            </Button>
+            <Button size="lg" variant="outline" asChild>
+              <Link href="/tickets/create">
+                List Your Tickets
+              </Link>
+            </Button>
           </div>
         </div>
 
         {/* Features Section */}
         <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="text-4xl mb-4">🔒</div>
-            <h3 className="text-xl font-semibold mb-2">Secure Transactions</h3>
-            <p className="text-gray-600">
-              Your purchases are protected with our secure payment system and buyer guarantee.
-            </p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="text-4xl mb-4">⚡</div>
-            <h3 className="text-xl font-semibold mb-2">Instant Delivery</h3>
-            <p className="text-gray-600">
-              Get your tickets immediately after purchase. No waiting, no hassle.
-            </p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <div className="text-4xl mb-4">💰</div>
-            <h3 className="text-xl font-semibold mb-2">Best Prices</h3>
-            <p className="text-gray-600">
-              Compare prices from multiple sellers and find the best deals on tickets.
-            </p>
-          </div>
+          <Card>
+            <CardHeader>
+              <div className="text-4xl mb-2">🔒</div>
+              <CardTitle>Secure Transactions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>
+                Your purchases are protected with our secure payment system and buyer guarantee.
+              </CardDescription>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <div className="text-4xl mb-2">⚡</div>
+              <CardTitle>Instant Delivery</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>
+                Get your tickets immediately after purchase. No waiting, no hassle.
+              </CardDescription>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <div className="text-4xl mb-2">💰</div>
+              <CardTitle>Best Prices</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>
+                Compare prices from multiple sellers and find the best deals on tickets.
+              </CardDescription>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Categories Section */}
         <div className="mt-20">
-          <h2 className="text-3xl font-bold text-center mb-10">Popular Categories</h2>
+          <h2 className="text-3xl font-bold text-center mb-10 text-foreground">Popular Categories</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Link 
               href="/tickets?category=concerts" 
@@ -95,7 +107,7 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white mt-20 py-12">
+      <footer className="bg-gray-900 dark:bg-gray-950 text-white mt-20 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
@@ -107,25 +119,25 @@ export default function Home() {
             <div>
               <h4 className="font-semibold mb-4">For Buyers</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/tickets" className="hover:text-white">Browse Tickets</Link></li>
-                <li><Link href="/how-it-works" className="hover:text-white">How It Works</Link></li>
-                <li><Link href="/buyer-guarantee" className="hover:text-white">Buyer Guarantee</Link></li>
+                <li><Link href="/tickets" className="hover:text-white transition-colors">Browse Tickets</Link></li>
+                <li><Link href="/how-it-works" className="hover:text-white transition-colors">How It Works</Link></li>
+                <li><Link href="/buyer-guarantee" className="hover:text-white transition-colors">Buyer Guarantee</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">For Sellers</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/tickets/create" className="hover:text-white">List Tickets</Link></li>
-                <li><Link href="/seller-guide" className="hover:text-white">Seller Guide</Link></li>
-                <li><Link href="/dashboard" className="hover:text-white">Dashboard</Link></li>
+                <li><Link href="/tickets/create" className="hover:text-white transition-colors">List Tickets</Link></li>
+                <li><Link href="/seller-guide" className="hover:text-white transition-colors">Seller Guide</Link></li>
+                <li><Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="font-semibold mb-4">Support</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><Link href="/help" className="hover:text-white">Help Center</Link></li>
-                <li><Link href="/contact" className="hover:text-white">Contact Us</Link></li>
-                <li><Link href="/terms" className="hover:text-white">Terms of Service</Link></li>
+                <li><Link href="/help" className="hover:text-white transition-colors">Help Center</Link></li>
+                <li><Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
+                <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
               </ul>
             </div>
           </div>
