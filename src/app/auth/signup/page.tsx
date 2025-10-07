@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -25,12 +26,16 @@ export default function SignUpPage() {
     setError("");
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      const errorMsg = "Passwords do not match";
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
     if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters");
+      const errorMsg = "Password must be at least 8 characters";
+      setError(errorMsg);
+      toast.error(errorMsg);
       return;
     }
 
@@ -44,10 +49,13 @@ export default function SignUpPage() {
       });
 
       // Sign up successful, redirect to dashboard
+      toast.success("Account created successfully! Welcome to TicketSaaS.");
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create account");
+      const errorMessage = err instanceof Error ? err.message : "Failed to create account";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
