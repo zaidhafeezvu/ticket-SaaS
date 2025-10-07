@@ -43,8 +43,11 @@ cat > .env << 'EOF'
 DATABASE_URL="file:./dev.db"
 BETTER_AUTH_SECRET="your-super-secret-key-change-this-in-production"
 BETTER_AUTH_URL="http://localhost:3000"
+NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000"
 EOF
 ```
+
+**For Production:** Set `BETTER_AUTH_URL` to your domain and leave `NEXT_PUBLIC_BETTER_AUTH_URL` unset (recommended).
 
 4. Set up the database:
 ```bash

@@ -24,7 +24,12 @@ Create a `.env` file in the root directory:
 
 ```bash
 DATABASE_URL="file:./dev.db"
+BETTER_AUTH_SECRET="your-super-secret-key-change-this-in-production"
+BETTER_AUTH_URL="http://localhost:3000"
+NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000"
 ```
+
+**Note:** For authentication to work, you need to set up Better Auth environment variables. See [AUTHENTICATION.md](./AUTHENTICATION.md) for details.
 
 ### 3. Generate Prisma Client
 
@@ -151,8 +156,16 @@ vercel
 ### Environment Variables for Production
 
 Make sure to set:
-- `DATABASE_URL` - Your database connection string
+- `DATABASE_URL` - Your database connection string (use PostgreSQL or MySQL for production)
+- `BETTER_AUTH_SECRET` - A strong, random secret key (generate with `openssl rand -base64 32`)
+- `BETTER_AUTH_URL` - Your production domain (e.g., `https://yourdomain.com`)
+- `NEXT_PUBLIC_BETTER_AUTH_URL` - Leave unset to use relative URLs (recommended) or set to your production domain
 - `NODE_ENV=production`
+
+**Important for Production:**
+- The auth client will use relative URLs when `NEXT_PUBLIC_BETTER_AUTH_URL` is not set
+- This automatically works with your deployment and avoids hardcoded localhost issues
+- See [AUTHENTICATION.md](./AUTHENTICATION.md) for detailed production setup
 
 ## Using the Application
 
