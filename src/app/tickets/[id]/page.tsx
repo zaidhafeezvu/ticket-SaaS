@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 interface Ticket {
   id: string;
@@ -62,7 +63,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
     }
 
     if (!ticket || purchaseQuantity > ticket.available) {
-      alert("Invalid quantity");
+      toast.error("Invalid quantity. Please check the available tickets.");
       return;
     }
 
@@ -80,16 +81,16 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
       });
 
       if (response.ok) {
-        alert("Purchase successful! Check your dashboard for details.");
+        toast.success("Purchase successful! Check your dashboard for details.");
         router.push("/dashboard");
         router.refresh();
       } else {
         const error = await response.json();
-        alert(error.error || "Purchase failed. Please try again.");
+        toast.error(error.error || "Purchase failed. Please try again.");
       }
     } catch (error) {
       console.error("Error purchasing ticket:", error);
-      alert("An error occurred");
+      toast.error("An error occurred while processing your purchase");
     } finally {
       setPurchasing(false);
     }

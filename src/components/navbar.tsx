@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { toast } from "sonner";
 
 export function Navbar() {
   const router = useRouter();
@@ -13,6 +14,7 @@ export function Navbar() {
   const handleSignOut = async () => {
     const { authClient } = await import("@/lib/auth-client");
     await authClient.signOut();
+    toast.success("Signed out successfully");
     router.push("/");
     router.refresh();
   };

@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
 
 export default function CreateTicketPage() {
   const router = useRouter();
@@ -66,14 +67,15 @@ export default function CreateTicketPage() {
 
       if (response.ok) {
         const ticket = await response.json();
+        toast.success("Ticket created successfully!");
         router.push(`/tickets/${ticket.id}`);
       } else {
         const error = await response.json();
-        alert(error.error || "Failed to create ticket");
+        toast.error(error.error || "Failed to create ticket");
       }
     } catch (error) {
       console.error("Error creating ticket:", error);
-      alert("An error occurred");
+      toast.error("An error occurred while creating the ticket");
     } finally {
       setLoading(false);
     }
