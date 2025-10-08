@@ -337,7 +337,7 @@ For production deployment:
 - ✅ **Rate Limiting**: In-memory rate limiting on all API routes (see below)
 - ✅ **Input Validation**: Server-side validation on all user inputs
 - ✅ **Environment Variables**: Sensitive data stored in .env
-- 🔄 **HTTPS**: Enable HTTPS only in production
+- ✅ **HTTPS**: Enabled HTTPS-only cookies and HSTS headers in production
 - 🔄 **Email Verification**: Consider enabling for production
 - 🔄 **2FA**: Consider adding two-factor authentication
 
