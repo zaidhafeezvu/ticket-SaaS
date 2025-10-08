@@ -265,7 +265,12 @@ export async function POST(request: NextRequest) {
    - Leave `NEXT_PUBLIC_BETTER_AUTH_URL` unset to use relative URLs (recommended for production)
    - Keep `DATABASE_URL` and `BETTER_AUTH_SECRET` secure
 
-2. **HTTPS:** Always use HTTPS in production
+2. **HTTPS:** 
+   - ✅ HTTPS-only cookies are automatically enabled in production via `useSecureCookies` configuration
+   - ✅ HTTP Strict Transport Security (HSTS) headers are set in production
+   - Session cookies will only be transmitted over HTTPS when `NODE_ENV=production`
+   - The application enforces HTTPS through secure cookies and HSTS headers
+   - Always deploy behind HTTPS in production (use a reverse proxy like nginx, or deploy to platforms with built-in HTTPS like Vercel)
 
 3. **Email Verification:** Consider enabling email verification for production
 

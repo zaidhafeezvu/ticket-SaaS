@@ -164,6 +164,8 @@ Make sure to set:
 **Important for Production:**
 - The auth client will use relative URLs when `NEXT_PUBLIC_BETTER_AUTH_URL` is not set
 - This automatically works with your deployment and avoids hardcoded localhost issues
+- HTTPS-only cookies and HSTS headers are automatically enabled when `NODE_ENV=production`
+- Always deploy behind HTTPS (most modern platforms like Vercel, Railway, Render provide this automatically)
 - See [AUTHENTICATION.md](./AUTHENTICATION.md) for detailed production setup
 
 ## Using the Application
