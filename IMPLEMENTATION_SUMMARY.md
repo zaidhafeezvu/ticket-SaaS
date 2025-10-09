@@ -172,13 +172,14 @@ Before deploying to production:
 
 ## Next Steps (Future Enhancements)
 
-1. OAuth providers (Google, GitHub)
+1. OAuth providers (Google, Twitter)
 2. Email verification flow
 3. Password reset functionality
 4. Two-factor authentication
 5. Remember me functionality
-6. Rate limiting on authentication endpoints
-7. Audit logging for security events
+6. Audit logging for security events
+
+**Note:** GitHub OAuth provider has been implemented! ✅
 
 ## Support
 

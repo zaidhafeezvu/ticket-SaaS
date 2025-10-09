@@ -27,9 +27,12 @@ DATABASE_URL="postgresql://user:password@localhost:5432/ticketsaas"
 BETTER_AUTH_SECRET="your-super-secret-key-change-this-in-production"
 BETTER_AUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000"
+# Optional: GitHub OAuth (get from https://github.com/settings/developers)
+GITHUB_CLIENT_ID="your-github-oauth-client-id"
+GITHUB_CLIENT_SECRET="your-github-oauth-client-secret"
 ```
 
-**Note:** For authentication to work, you need to set up Better Auth environment variables. See [AUTHENTICATION.md](./AUTHENTICATION.md) for details.
+**Note:** For authentication to work, you need to set up Better Auth environment variables. For GitHub OAuth setup instructions, see [AUTHENTICATION.md](./AUTHENTICATION.md) for details.
 
 ### 3. Generate Prisma Client
 
