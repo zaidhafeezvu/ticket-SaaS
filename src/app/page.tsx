@@ -20,12 +20,21 @@ export default function Home() {
             Safe, secure, and simple.
           </p>
           <div className="flex gap-4 justify-center">
-            <Button size="lg" asChild>
+            <Button 
+              size="lg" 
+              asChild
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+            >
               <Link href="/tickets">
                 Browse Tickets
               </Link>
             </Button>
-            <Button size="lg" variant="outline" asChild>
+            <Button 
+              size="lg" 
+              variant="outline" 
+              asChild
+              className="border-2 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-950/50 dark:hover:to-purple-950/50 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+            >
               <Link href="/tickets/create">
                 List Your Tickets
               </Link>
