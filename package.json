@@ -43,5 +43,6 @@
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
-  }
+  },
+  "packageManager": "bun@1.2.23"
 }
