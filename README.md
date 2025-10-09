@@ -44,10 +44,15 @@ DATABASE_URL="postgresql://user:password@localhost:5432/ticketsaas"
 BETTER_AUTH_SECRET="your-super-secret-key-change-this-in-production"
 BETTER_AUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000"
+# Optional: GitHub OAuth (get from https://github.com/settings/developers)
+GITHUB_CLIENT_ID="your-github-oauth-client-id"
+GITHUB_CLIENT_SECRET="your-github-oauth-client-secret"
 EOF
 ```
 
 **For Production:** Set `BETTER_AUTH_URL` to your domain and leave `NEXT_PUBLIC_BETTER_AUTH_URL` unset (recommended).
+
+**For GitHub OAuth:** Create a GitHub OAuth App at https://github.com/settings/developers with callback URL: `http://localhost:3000/api/auth/callback/github` (or your domain in production).
 
 4. Set up the database:
 ```bash
@@ -114,13 +119,14 @@ bunx prisma studio
 The application uses **Better Auth** for comprehensive user authentication. Key features:
 
 - ✅ Email/password authentication with secure bcrypt hashing
+- ✅ GitHub OAuth authentication for easy sign-in
 - ✅ Session management with automatic refresh
 - ✅ Protected routes for authenticated users only
 - ✅ User-specific dashboards showing only owned tickets and purchases
 
 **Available Auth Pages:**
-- `/auth/signup` - Create a new account
-- `/auth/login` - Sign in to existing account
+- `/auth/signup` - Create a new account (email or GitHub)
+- `/auth/login` - Sign in to existing account (email or GitHub)
 
 **Protected Routes (require authentication):**
 - `/dashboard` - View your tickets and purchases
@@ -312,7 +318,8 @@ model Purchase {
 ## 🎯 Future Enhancements
 
 - [x] User authentication with Better Auth ✅
-- [ ] OAuth providers (Google, GitHub)
+- [x] GitHub OAuth provider ✅
+- [ ] OAuth providers (Google, Twitter)
 - [ ] Email verification
 - [ ] Two-factor authentication (2FA)
 - [ ] Payment integration (Stripe/PayPal)
