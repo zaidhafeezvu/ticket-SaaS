@@ -5,6 +5,7 @@ This application uses [Better Auth](https://www.better-auth.com/) for comprehens
 ## Features
 
 - ✅ Email/Password authentication
+- ✅ GitHub OAuth authentication
 - ✅ Secure password hashing with bcrypt
 - ✅ Session management with automatic refresh
 - ✅ Protected routes (Dashboard, Create Ticket, Purchase)
@@ -21,6 +22,9 @@ DATABASE_URL="postgresql://user:password@localhost:5432/ticketsaas"
 BETTER_AUTH_SECRET="your-super-secret-key-change-this-in-production"
 BETTER_AUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000"
+# Optional: GitHub OAuth (get from https://github.com/settings/developers)
+GITHUB_CLIENT_ID="your-github-oauth-client-id"
+GITHUB_CLIENT_SECRET="your-github-oauth-client-secret"
 ```
 
 **Important:** Change `BETTER_AUTH_SECRET` to a strong, random string in production. You can generate one with:
@@ -32,6 +36,15 @@ openssl rand -base64 32
 - Set `BETTER_AUTH_URL` to your production domain (e.g., `https://yourdomain.com`)
 - Leave `NEXT_PUBLIC_BETTER_AUTH_URL` unset (recommended) or set it to your production domain
 - When `NEXT_PUBLIC_BETTER_AUTH_URL` is not set, the app uses relative URLs which automatically work with your deployment
+- Update GitHub OAuth App callback URL to: `https://yourdomain.com/api/auth/callback/github`
+
+**For GitHub OAuth Setup:**
+1. Go to https://github.com/settings/developers
+2. Click "New OAuth App"
+3. Set **Application name**: Your app name (e.g., "TicketSaaS")
+4. Set **Homepage URL**: `http://localhost:3000` (or your domain)
+5. Set **Authorization callback URL**: `http://localhost:3000/api/auth/callback/github` (or your domain)
+6. Copy the **Client ID** and **Client Secret** to your `.env` file
 
 ### 2. Database Setup
 
@@ -55,14 +68,15 @@ After seeding, you can login with:
 
 ### Sign Up
 
-Navigate to `/auth/signup` or click "Sign Up" in the navigation bar. Create an account with:
-- Name
-- Email address
-- Password (minimum 8 characters)
+Navigate to `/auth/signup` or click "Sign Up" in the navigation bar. You can create an account using:
+- **Email/Password**: Enter your name, email, and password (minimum 8 characters)
+- **GitHub OAuth**: Click "Sign up with GitHub" to use your GitHub account
 
 ### Sign In
 
-Navigate to `/auth/login` or click "Sign In" in the navigation bar. Enter your email and password.
+Navigate to `/auth/login` or click "Sign In" in the navigation bar. You can sign in using:
+- **Email/Password**: Enter your registered email and password
+- **GitHub OAuth**: Click "Sign in with GitHub" to authenticate with your GitHub account
 
 ### Protected Routes
 
