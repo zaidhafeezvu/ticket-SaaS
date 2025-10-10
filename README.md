@@ -2,6 +2,19 @@
 
 A modern, full-featured SaaS platform for buying and selling event tickets built with Next.js 15.
 
+## 📚 Documentation
+
+**[View Full Documentation →](/docs)**
+
+Comprehensive guides covering:
+- Getting Started & Installation
+- Configuration & Environment Setup
+- Authentication & Security
+- Database Setup & Management
+- Features & API Reference
+- Rate Limiting
+- Deployment Guide
+
 ## 🎫 Features
 
 - **User Authentication**: Secure email/password authentication with Better Auth

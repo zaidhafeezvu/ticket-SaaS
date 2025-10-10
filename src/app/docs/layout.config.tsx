@@ -3,8 +3,21 @@ import { source } from "./source";
 import type { DocsLayoutProps } from "fumadocs-ui/layouts/docs";
 import { BookOpenIcon, HomeIcon } from "lucide-react";
 
+// Build a simple page tree from the docs
+const buildPageTree = () => {
+  const pages = (source as any).pages || [];
+  return {
+    name: "Docs",
+    children: pages.map((page: any) => ({
+      name: page.data.title,
+      url: `/docs/${page.slugs.join("/")}`,
+      ...page,
+    })),
+  };
+};
+
 export const docsOptions: DocsLayoutProps = {
-  tree: (source as any).pageTree,
+  tree: buildPageTree(),
   nav: {
     title: (
       <>

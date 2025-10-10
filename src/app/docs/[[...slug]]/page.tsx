@@ -14,10 +14,17 @@ export default async function Page(props: PageProps) {
   
   const allPages = (source as any).pages || [];
   
+  // Match the page by comparing slugs
+  // Empty slug array matches "index"
   const page = allPages.find((p: any) => {
-    const pageSlug = p.slugs.join("/");
-    const requestedSlug = slug.join("/");
-    return pageSlug === requestedSlug || (requestedSlug === "" && pageSlug === "index");
+    if (slug.length === 0) {
+      // No slug means we want the index page
+      return p.slugs.length === 1 && p.slugs[0] === "index";
+    }
+    
+    // Compare slug arrays
+    if (p.slugs.length !== slug.length) return false;
+    return p.slugs.every((s: string, i: number) => s === slug[i]);
   });
 
   if (!page) notFound();
@@ -46,9 +53,14 @@ export default async function Page(props: PageProps) {
 
 export async function generateStaticParams() {
   const allPages = (source as any).pages || [];
-  return allPages.map((page: any) => ({
-    slug: page.slugs,
-  }));
+  return allPages.map((page: any) => {
+    // For index page, return empty slug array
+    if (page.slugs.length === 1 && page.slugs[0] === "index") {
+      return { slug: [] };
+    }
+    // For other pages, return their slugs
+    return { slug: page.slugs };
+  });
 }
 
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
@@ -58,9 +70,12 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const allPages = (source as any).pages || [];
   
   const page = allPages.find((p: any) => {
-    const pageSlug = p.slugs.join("/");
-    const requestedSlug = slug.join("/");
-    return pageSlug === requestedSlug || (requestedSlug === "" && pageSlug === "index");
+    if (slug.length === 0) {
+      return p.slugs.length === 1 && p.slugs[0] === "index";
+    }
+    
+    if (p.slugs.length !== slug.length) return false;
+    return p.slugs.every((s: string, i: number) => s === slug[i]);
   });
 
   if (!page) notFound();
