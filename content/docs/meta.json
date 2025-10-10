@@ -1,0 +1,13 @@
+{
+  "title": "Documentation",
+  "pages": [
+    "index",
+    "configuration",
+    "database",
+    "authentication",
+    "features",
+    "api",
+    "rate-limiting",
+    "deployment"
+  ]
+}
