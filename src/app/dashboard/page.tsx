@@ -19,6 +19,16 @@ export default async function DashboardPage() {
     redirect("/auth/login");
   }
 
+  // Check email verification
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { emailVerified: true },
+  });
+
+  if (!user?.emailVerified) {
+    redirect("/auth/email-verification-required");
+  }
+
   // Fetch user's tickets
   const tickets: Ticket[] = await prisma.ticket.findMany({
     where: {
