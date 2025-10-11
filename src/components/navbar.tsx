@@ -61,6 +61,12 @@ export function Navbar() {
             >
               Browse Tickets
             </Link>
+            <Link
+              href="/docs"
+              className="text-foreground hover:text-primary transition-colors"
+            >
+              Documentation
+            </Link>
             
             {!isPending && (
               <>
@@ -182,6 +188,17 @@ export function Navbar() {
                   >
                     <Link href="/tickets">
                       Browse Tickets
+                    </Link>
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    className="justify-start" 
+                    asChild
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Link href="/docs">
+                      Documentation
                     </Link>
                   </Button>
                   

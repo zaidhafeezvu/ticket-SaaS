@@ -1,0 +1,432 @@
+---
+title: Rate Limiting
+description: Understanding API rate limiting and best practices
+---
+
+# Rate Limiting
+
+All API endpoints are protected with rate limiting to prevent abuse, brute force attacks, and ensure fair usage.
+
+## Overview
+
+The platform implements an in-memory sliding window rate limiting approach that tracks requests per IP address.
+
+**Key Features:**
+- Sliding window algorithm for accurate rate limiting
+- IP-based tracking using `x-forwarded-for` or `x-real-ip` headers
+- Automatic cleanup of expired rate limit records
+- Configurable limits per endpoint
+- Proper HTTP headers in responses
+
+## Rate Limits by Endpoint
+
+### Authentication Routes
+
+**Endpoints:** `/api/auth/*`
+
+- **Limit:** 20 requests per 15 minutes
+- **Purpose:** Prevents brute force attacks and credential stuffing
+- **Applies to:**
+  - Sign up
+  - Sign in
+  - Sign out
+  - Session checks
+  - OAuth callbacks
+
+### Ticket Routes
+
+**GET /api/tickets**
+- **Limit:** 30 requests per minute
+- **Purpose:** Prevent excessive browsing queries
+
+**POST /api/tickets** (Create)
+- **Limit:** 10 requests per minute
+- **Purpose:** Prevent spam ticket listings
+
+**GET /api/tickets/[id]**
+- **Limit:** 60 requests per minute
+- **Purpose:** Allow frequent detail views
+
+### Purchase Routes
+
+**POST /api/purchases** (Purchase tickets)
+- **Limit:** 5 requests per minute (strict)
+- **Purpose:** Prevent purchase abuse and fraud
+
+**GET /api/purchases**
+- **Limit:** 30 requests per minute
+- **Purpose:** Allow dashboard queries
+
+## Rate Limit Summary
+
+| Endpoint | Method | Limit | Window | Purpose |
+|----------|--------|-------|--------|---------|
+| `/api/auth/*` | All | 20 | 15 min | Brute force prevention |
+| `/api/tickets` | GET | 30 | 1 min | Browse throttling |
+| `/api/tickets` | POST | 10 | 1 min | Spam prevention |
+| `/api/tickets/[id]` | GET | 60 | 1 min | Detail view allowance |
+| `/api/purchases` | GET | 30 | 1 min | Dashboard queries |
+| `/api/purchases` | POST | 5 | 1 min | Purchase protection |
+
+## Response Format
+
+### Rate Limit Headers
+
+Every API response includes rate limit information:
+
+```text
+X-RateLimit-Limit: 30
+X-RateLimit-Remaining: 25
+X-RateLimit-Reset: 2025-10-10T21:00:00.000Z
+```
+
+**Headers:**
+- `X-RateLimit-Limit`: Maximum requests allowed in the window
+- `X-RateLimit-Remaining`: Requests remaining in current window
+- `X-RateLimit-Reset`: ISO timestamp when the limit resets
+
+### Rate Limit Exceeded
+
+When you exceed the rate limit:
+
+**Status Code:** `429 Too Many Requests`
+
+**Response Body:**
+```json
+{
+  "error": "Too many requests. Please try again later.",
+  "retryAfter": 45
+}
+```
+
+**Additional Header:**
+```text
+Retry-After: 45
+```
+
+The `retryAfter` value indicates seconds until you can retry.
+
+## Best Practices
+
+### For API Consumers
+
+1. **Monitor Headers:** Check `X-RateLimit-Remaining` to avoid hitting limits
+2. **Implement Backoff:** Use exponential backoff when rate limited
+3. **Cache Responses:** Cache GET requests to reduce API calls
+4. **Batch Operations:** Group multiple operations when possible
+5. **Handle 429s Gracefully:** Show user-friendly messages
+
+### Example: Handling Rate Limits
+
+```typescript
+async function fetchWithRetry(url: string, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    const response = await fetch(url);
+    
+    if (response.status === 429) {
+      const retryAfter = parseInt(
+        response.headers.get('Retry-After') || '60'
+      );
+      
+      console.log(`Rate limited. Retrying after ${retryAfter}s`);
+      await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+      continue;
+    }
+    
+    return response;
+  }
+  
+  throw new Error('Max retries exceeded');
+}
+```
+
+### Optimizing API Usage
+
+**Reduce calls by:**
+- Caching ticket listings
+- Using local state management
+- Implementing pagination properly
+- Avoiding polling; use intervals wisely
+
+**Example: Efficient Polling**
+```typescript
+// ❌ Bad: Poll every second
+setInterval(() => fetchTickets(), 1000);
+
+// ✅ Good: Poll every 30 seconds
+setInterval(() => fetchTickets(), 30000);
+
+// ✅ Better: Use cache and only refresh on user action
+```
+
+## Implementation Details
+
+### Sliding Window Algorithm
+
+The platform uses a sliding window approach:
+
+1. Each request is timestamped
+2. Old requests outside the window are discarded
+3. Current count is compared against the limit
+4. Window moves with each request
+
+**Benefits:**
+- More accurate than fixed windows
+- Prevents burst attacks at window boundaries
+- Fair distribution of requests
+
+### IP-Based Tracking
+
+Rate limits are tracked per client IP address.
+
+**IP Detection:**
+1. Check `x-forwarded-for` header (proxy/load balancer)
+2. Check `x-real-ip` header (alternative proxy header)
+3. Fall back to direct connection IP
+
+**Considerations:**
+- Multiple users behind NAT share the same limit
+- VPN users can change IPs to bypass limits
+- May need user-based limiting for authenticated routes
+
+## Production Considerations
+
+### Current Implementation
+
+**Storage:** In-memory using JavaScript Map
+
+**Characteristics:**
+- ✅ Fast and efficient
+- ✅ No external dependencies
+- ✅ Automatic cleanup of expired entries
+- ❌ Resets on server restart
+- ❌ Not shared across multiple servers
+- ❌ Memory usage grows with unique IPs
+
+### Scaling for Production
+
+For production deployments at scale:
+
+#### 1. Distributed Rate Limiting
+
+Use Redis or another distributed cache:
+
+```typescript
+import { Redis } from 'ioredis';
+
+const redis = new Redis(process.env.REDIS_URL);
+
+export async function checkRateLimit(ip: string) {
+  const key = `ratelimit:${ip}`;
+  const count = await redis.incr(key);
+  
+  if (count === 1) {
+    await redis.expire(key, 60); // 60 second window
+  }
+  
+  return count <= 30; // Max 30 requests
+}
+```
+
+**Benefits:**
+- Shared state across servers
+- Persists across restarts
+- Scalable to millions of IPs
+
+#### 2. Proxy Configuration
+
+Ensure proper IP forwarding:
+
+**nginx example:**
+```nginx
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Real-IP $remote_addr;
+```
+
+**Vercel/Cloudflare:** Automatically set correct headers
+
+#### 3. Enhanced Strategies
+
+**User-Based Limits:**
+```typescript
+// For authenticated users, track by user ID instead of IP
+const identifier = session 
+  ? `user:${session.user.id}` 
+  : `ip:${getClientIp(request)}`;
+```
+
+**Tiered Limits:**
+```typescript
+const limits = {
+  free: { requests: 30, window: 60000 },
+  pro: { requests: 100, window: 60000 },
+  enterprise: { requests: 1000, window: 60000 },
+};
+```
+
+**Burst Allowance:**
+```typescript
+// Allow occasional bursts but maintain average rate
+const config = {
+  capacity: 30,        // Bucket capacity
+  refillRate: 1,       // Tokens per second
+  refillPerRequest: 1  // Tokens consumed per request
+};
+```
+
+#### 4. Monitoring
+
+Track rate limiting metrics:
+
+```typescript
+// Log rate limit violations
+logger.info('Rate limit exceeded', {
+  ip,
+  endpoint: request.url,
+  timestamp: new Date(),
+});
+
+// Metrics for monitoring
+metrics.increment('api.rate_limit.exceeded', {
+  endpoint: request.url,
+});
+```
+
+**Set up alerts for:**
+- High rate of 429 responses
+- Suspicious patterns (many IPs hitting limits)
+- Potential DDoS attacks
+
+## Security Benefits
+
+### 1. Brute Force Prevention
+
+Authentication endpoint limits prevent:
+- Password guessing attacks
+- Credential stuffing
+- Account enumeration
+
+### 2. DoS/DDoS Mitigation
+
+API-wide limits protect against:
+- Denial of service attacks
+- Resource exhaustion
+- Database overload
+
+### 3. Fair Usage
+
+Ensures:
+- Equal access for all users
+- No single user monopolizes resources
+- Predictable performance
+
+### 4. Cost Control
+
+Helps with:
+- Reduced unnecessary API calls
+- Lower database query volume
+- Infrastructure cost management
+
+## Limitations
+
+### 1. In-Memory Storage
+
+- Rate limits reset on server restart
+- Not shared across multiple instances
+- Memory grows with unique IP count
+
+**Solution:** Use Redis in production
+
+### 2. IP-Based Tracking
+
+- NAT users share limits
+- VPN users can bypass by changing IPs
+- May affect legitimate users
+
+**Solution:** Implement user-based limiting for authenticated routes
+
+### 3. No Burst Allowance
+
+- Legitimate traffic spikes may be blocked
+- No differentiation between burst and sustained abuse
+
+**Solution:** Implement token bucket algorithm
+
+## Future Enhancements
+
+Planned improvements:
+
+- [ ] Redis integration for distributed rate limiting
+- [ ] User-based rate limiting for authenticated requests
+- [ ] Configuration via environment variables
+- [ ] Rate limit analytics dashboard
+- [ ] Burst allowance for legitimate spikes
+- [ ] IP whitelist/blacklist functionality
+- [ ] Tiered limits for different user levels
+- [ ] Adaptive rate limiting based on load
+
+## Testing Rate Limits
+
+### Manual Testing
+
+**Test with cURL:**
+```bash
+# Test authentication rate limit
+for i in {1..25}; do
+  curl http://localhost:3000/api/auth/session
+  echo "Request $i"
+done
+```
+
+**Expected:** First 20 succeed, remaining get 429 responses
+
+### Automated Testing
+
+```typescript
+describe('Rate Limiting', () => {
+  it('should rate limit after max requests', async () => {
+    const requests = Array.from({ length: 31 }, () =>
+      fetch('/api/tickets')
+    );
+    
+    const responses = await Promise.all(requests);
+    const rateLimited = responses.filter(r => r.status === 429);
+    
+    expect(rateLimited.length).toBeGreaterThan(0);
+  });
+});
+```
+
+## Troubleshooting
+
+### "Too many requests" errors
+
+**Causes:**
+- Exceeded rate limit for endpoint
+- Polling too frequently
+- Multiple tabs/windows making requests
+- Shared IP (office, public WiFi)
+
+**Solutions:**
+- Wait for the `retryAfter` duration
+- Reduce request frequency
+- Implement caching
+- Contact support if limits are too restrictive
+
+### Rate limits reset unexpectedly
+
+**Cause:** Server restart (in-memory storage)
+
+**Solution:** Use Redis for persistence in production
+
+### Different IPs, same rate limit
+
+**Cause:** Behind a proxy/NAT
+
+**Solution:** Implement user-based rate limiting for authenticated users
+
+## Next Steps
+
+- [API Reference](/docs/api) - View all API endpoints and limits
+- [Authentication](/docs/authentication) - Learn about authentication security
+- [Deployment](/docs/deployment) - Deploy with proper rate limiting

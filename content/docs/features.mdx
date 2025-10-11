@@ -1,0 +1,378 @@
+---
+title: Features
+description: Explore all the features of the Ticket Marketplace SaaS platform
+---
+
+# Features
+
+Explore the comprehensive features of the Ticket Marketplace SaaS platform.
+
+## User Authentication
+
+Secure authentication system powered by Better Auth.
+
+### Sign Up
+- Create account with email and password
+- GitHub OAuth sign-up option
+- Name and email validation
+- Automatic sign-in after registration
+- Redirect to dashboard upon success
+
+### Sign In
+- Email/password authentication
+- GitHub OAuth sign-in option
+- Session management
+- Remember me functionality
+- Error handling for invalid credentials
+
+**Learn more:** [Authentication Guide](/docs/authentication)
+
+## Ticket Management
+
+### Browse Tickets
+
+View all available tickets on the marketplace.
+
+**Features:**
+- Browse all available tickets at `/tickets`
+- Filter by category:
+  - 🎵 Concerts - Music concerts and festivals
+  - ⚽ Sports - Sports events and games
+  - 🎭 Theater - Theater shows and performances
+  - 🎪 Festival - Festivals and special events
+- View ticket details (price, date, location, availability)
+- Responsive grid layout
+- Empty state when no tickets match filters
+- Real-time availability updates
+
+### Ticket Details
+
+View comprehensive information about a specific ticket.
+
+**Location:** `/tickets/[id]`
+
+**Information Displayed:**
+- Event title and description
+- Category badge with emoji
+- Event date and time
+- Location
+- Price per ticket
+- Available quantity
+- Total tickets in stock
+- Seller information
+
+**Actions:**
+- Purchase tickets (authenticated users only)
+- View seller profile
+- Share ticket details
+
+### Create Ticket Listing
+
+List your tickets for sale on the marketplace.
+
+**Location:** `/tickets/create` (requires authentication)
+
+**Form Fields:**
+- **Title**: Event name (required)
+- **Description**: Detailed event information (required)
+- **Category**: Concert, Sports, Theater, or Festival (required)
+- **Event Date**: Date and time of the event (required)
+- **Location**: Event venue or address (required)
+- **Price**: Price per ticket in USD (required, positive number)
+- **Quantity**: Number of tickets available (required, positive integer)
+
+**Features:**
+- Form validation for all fields
+- Category selection dropdown
+- Date picker for event date
+- Real-time error messages
+- Success notification on creation
+- Automatic redirect to ticket details
+
+**Business Logic:**
+- Seller is automatically set to the authenticated user
+- Available quantity initially equals total quantity
+- Tickets appear immediately in marketplace
+- Tickets can be edited or deleted by the seller
+
+## Dashboard
+
+Personal dashboard for managing your tickets and purchases.
+
+**Location:** `/dashboard` (requires authentication)
+
+### My Tickets
+
+View and manage tickets you've listed for sale.
+
+**Features:**
+- List of all your ticket listings
+- Status indicators (Available, Low Stock, Sold Out)
+- Quick stats:
+  - Total tickets listed
+  - Available tickets
+  - Sold tickets
+  - Revenue earned
+- Actions:
+  - View ticket details
+  - Edit ticket information
+  - Delete ticket listing
+- Real-time updates on sales
+
+### My Purchases
+
+Track tickets you've purchased.
+
+**Features:**
+- List of all purchased tickets
+- Purchase details:
+  - Event information
+  - Purchase date
+  - Quantity purchased
+  - Total amount paid
+  - Seller information
+- Order history
+- Download/print tickets
+- Quick stats:
+  - Total purchases
+  - Total spent
+  - Upcoming events
+
+## Purchase Flow
+
+Complete ticket purchase process.
+
+### Purchase Tickets
+
+**Steps:**
+1. Browse tickets at `/tickets` or search for specific events
+2. Click on a ticket to view details at `/tickets/[id]`
+3. Select quantity (up to available stock)
+4. Click "Purchase" button (requires authentication)
+5. Confirm purchase details
+6. Complete purchase
+
+**Business Logic:**
+- Must be authenticated to purchase
+- Cannot purchase more than available quantity
+- Cannot purchase your own tickets
+- Price is calculated as: `quantity × ticket price`
+- Available quantity decreases after purchase
+- Purchase record created with timestamp
+- Seller and buyer are linked in database
+
+**Validations:**
+- Sufficient ticket availability
+- Valid quantity (positive integer)
+- User authentication
+- Not purchasing own tickets
+
+## Search and Filtering
+
+### Category Filters
+
+Filter tickets by event category:
+- All Categories (default)
+- Concerts
+- Sports
+- Theater
+- Festival
+
+**Implementation:**
+- Client-side filtering for instant results
+- Maintains filter state in URL parameters
+- Preserves filters on page refresh
+- Visual indication of active filters
+
+### Future Search Features
+
+Planned enhancements:
+- Text search by event name
+- Price range filters
+- Date range filters
+- Location-based search
+- Sorting options (price, date, popularity)
+- Advanced filters (venue, artist, team)
+
+## User Interface
+
+### Navigation
+
+Responsive navigation bar with:
+- Logo and home link
+- Browse Tickets link
+- Authentication status
+- Sign In/Sign Up buttons (when not authenticated)
+- Dashboard and Create Ticket links (when authenticated)
+- User profile dropdown
+- Sign Out option
+
+### Theme Support
+
+Built-in dark mode support:
+- Light theme (default)
+- Dark theme
+- System preference detection
+- Theme toggle button
+- Persistent theme preference
+- Smooth transitions
+
+**Implementation:**
+- Uses `next-themes` library
+- CSS variables for colors
+- Tailwind dark mode classes
+- Saves preference in localStorage
+
+### Responsive Design
+
+Mobile-first responsive design:
+- Adapts to all screen sizes
+- Mobile navigation menu
+- Touch-friendly interactions
+- Optimized layouts for tablets
+- Desktop enhancements
+
+### UI Components
+
+Built with shadcn/ui and Radix UI:
+- Buttons
+- Forms and inputs
+- Dropdowns and selects
+- Cards
+- Dialogs and modals
+- Labels
+- Avatars
+- Toast notifications
+
+## Real-time Features
+
+### Availability Tracking
+
+Real-time ticket availability:
+- Automatic updates on purchases
+- Visual indicators for stock levels:
+  - 🟢 Available (>10 tickets)
+  - 🟡 Low Stock (1-10 tickets)
+  - 🔴 Sold Out (0 tickets)
+- Prevents overselling
+- Consistent across all users
+
+### Session Management
+
+Automatic session handling:
+- Session refresh every 24 hours
+- 7-day session expiration
+- Automatic sign-out on expiration
+- Session persistence across tabs
+- Secure session storage
+
+## Security Features
+
+### Data Protection
+
+- Password hashing with bcrypt
+- Secure session management
+- HTTPS enforcement in production
+- HTTP-only cookies
+- CSRF protection
+- SQL injection prevention (via Prisma)
+
+### Rate Limiting
+
+API rate limits to prevent abuse:
+- Authentication: 20 requests per 15 minutes
+- Ticket creation: 10 requests per minute
+- Purchases: 5 requests per minute
+- Browse tickets: 30 requests per minute
+
+**Learn more:** [Rate Limiting Guide](/docs/rate-limiting)
+
+### Access Control
+
+User data isolation:
+- Users can only edit/delete their own tickets
+- Purchase history is private
+- Dashboard shows only user's data
+- Protected routes require authentication
+- Authorization checks on all mutations
+
+## Future Enhancements
+
+Planned features for future releases:
+
+### Authentication
+- [ ] Email verification
+- [ ] Password reset functionality
+- [ ] Two-factor authentication (2FA)
+- [ ] OAuth providers (Google, Twitter)
+
+### Payments
+- [ ] Payment integration (Stripe/PayPal)
+- [ ] Refund management
+- [ ] Payment history
+- [ ] Invoice generation
+
+### Notifications
+- [ ] Email notifications for purchases
+- [ ] Email notifications for sales
+- [ ] Real-time push notifications
+- [ ] SMS notifications
+
+### Search & Discovery
+- [ ] Advanced search with filters
+- [ ] Price range filtering
+- [ ] Date range filtering
+- [ ] Location-based search
+- [ ] Recommended events
+
+### Social Features
+- [ ] User reviews and ratings
+- [ ] Event comments
+- [ ] Social sharing
+- [ ] Favorite/wishlist
+- [ ] Follow sellers
+
+### Ticket Features
+- [ ] QR code generation for entry
+- [ ] Multi-image upload for tickets
+- [ ] Ticket transfer functionality
+- [ ] Barcode scanning
+- [ ] Digital ticket wallet
+
+### Admin Features
+- [ ] Admin panel for platform management
+- [ ] User management
+- [ ] Content moderation
+- [ ] Analytics dashboard
+- [ ] Revenue reports
+
+### Analytics
+- [ ] Analytics dashboard for sellers
+- [ ] Sales statistics
+- [ ] Visitor tracking
+- [ ] Popular events
+- [ ] Performance metrics
+
+## Best Practices
+
+### For Sellers
+
+1. **Clear Descriptions**: Provide detailed event information
+2. **Accurate Pricing**: Set competitive, fair prices
+3. **Honest Availability**: Keep ticket quantities accurate
+4. **Quick Response**: Monitor your dashboard for sales
+5. **Quality Photos**: Use clear event images (when feature available)
+
+### For Buyers
+
+1. **Verify Details**: Check event date, time, and location
+2. **Read Descriptions**: Understand what's included
+3. **Check Seller**: Review seller's other listings
+4. **Purchase Early**: Popular events sell out quickly
+5. **Save Confirmations**: Keep purchase records
+
+## Next Steps
+
+- [API Reference](/docs/api) - Learn about the API endpoints
+- [Database Schema](/docs/database) - Understand the data structure
+- [Deployment](/docs/deployment) - Deploy to production

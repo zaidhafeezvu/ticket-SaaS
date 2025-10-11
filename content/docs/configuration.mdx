@@ -1,0 +1,175 @@
+---
+title: Configuration
+description: Set up environment variables and configure your application
+---
+
+# Configuration
+
+This guide explains how to configure the Ticket Marketplace SaaS application using environment variables.
+
+## Environment Variables
+
+Create a `.env` file in the root directory with the following variables:
+
+```bash
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/ticketsaas"
+
+# Better Auth
+BETTER_AUTH_SECRET="your-super-secret-key-change-this-in-production"
+BETTER_AUTH_URL="http://localhost:3000"
+NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000"
+
+# Optional: GitHub OAuth
+GITHUB_CLIENT_ID="your-github-oauth-client-id"
+GITHUB_CLIENT_SECRET="your-github-oauth-client-secret"
+```
+
+## Database Configuration
+
+### DATABASE_URL
+
+The PostgreSQL connection string for your database.
+
+**Format:** `postgresql://[user]:[password]@[host]:[port]/[database]`
+
+**Example:** `postgresql://postgres:password@localhost:5432/ticketsaas`
+
+**Supported Databases:**
+- PostgreSQL (recommended for production)
+- MySQL
+- SQLite (development only)
+
+## Authentication Configuration
+
+### BETTER_AUTH_SECRET
+
+A secret key used to sign session tokens and encrypt sensitive data.
+
+**Important:** Change this to a strong, random string in production!
+
+**Generate a secure secret:**
+```bash
+openssl rand -base64 32
+```
+
+### BETTER_AUTH_URL
+
+The base URL of your application.
+
+**Development:** `http://localhost:3000`
+**Production:** Your production domain (e.g., `https://yourdomain.com`)
+
+### NEXT_PUBLIC_BETTER_AUTH_URL
+
+The public-facing base URL for authentication endpoints.
+
+**Development:** `http://localhost:3000`
+**Production:** Leave unset (recommended) or set to your production domain
+
+**Note:** When not set, the app uses relative URLs which automatically work with your deployment.
+
+## GitHub OAuth Configuration
+
+To enable GitHub OAuth authentication:
+
+### 1. Create a GitHub OAuth App
+
+1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
+2. Click **"New OAuth App"**
+3. Fill in the details:
+   - **Application name**: Your app name (e.g., "TicketSaaS")
+   - **Homepage URL**: `http://localhost:3000` (or your domain)
+   - **Authorization callback URL**: `http://localhost:3000/api/auth/callback/github` (or your domain)
+4. Click **"Register application"**
+5. Copy the **Client ID** and generate a **Client Secret**
+
+### 2. Add Credentials to .env
+
+```bash
+GITHUB_CLIENT_ID="your-client-id-here"
+GITHUB_CLIENT_SECRET="your-client-secret-here"
+```
+
+### 3. Update for Production
+
+When deploying to production, update the callback URL in your GitHub OAuth App settings:
+```
+https://yourdomain.com/api/auth/callback/github
+```
+
+## Production Considerations
+
+### Security
+
+- ✅ Generate a strong `BETTER_AUTH_SECRET` (at least 32 characters)
+- ✅ Never commit `.env` files to version control
+- ✅ Use environment-specific variables for different environments
+- ✅ Enable HTTPS in production (automatically enforced)
+
+### Environment Variables
+
+**Production checklist:**
+- Set `NODE_ENV=production`
+- Set `BETTER_AUTH_URL` to your production domain
+- Leave `NEXT_PUBLIC_BETTER_AUTH_URL` unset (uses relative URLs)
+- Update GitHub OAuth callback URL if using GitHub authentication
+
+### Example Production .env
+
+```bash
+NODE_ENV=production
+DATABASE_URL="postgresql://user:password@production-db:5432/ticketsaas"
+BETTER_AUTH_SECRET="production-secret-at-least-32-chars-long-random"
+BETTER_AUTH_URL="https://yourdomain.com"
+# NEXT_PUBLIC_BETTER_AUTH_URL is intentionally not set
+GITHUB_CLIENT_ID="prod-github-client-id"
+GITHUB_CLIENT_SECRET="prod-github-client-secret"
+```
+
+## Verifying Configuration
+
+After setting up your environment variables:
+
+1. Check that `.env` file exists:
+```bash
+cat .env
+```
+
+2. Verify Prisma can connect to the database:
+```bash
+npx prisma db pull
+```
+
+3. Test authentication by starting the dev server:
+```bash
+npm run dev
+```
+
+4. Visit http://localhost:3000 and try signing up
+
+## Troubleshooting
+
+### "Cannot connect to database"
+
+- Verify `DATABASE_URL` is correct
+- Check that PostgreSQL is running
+- Ensure the database exists
+
+### "Unauthorized" errors
+
+- Verify `BETTER_AUTH_SECRET` is set
+- Check that `BETTER_AUTH_URL` matches your domain
+- Clear browser cookies and try again
+
+### GitHub OAuth not working
+
+- Verify `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` are set
+- Check that the callback URL in GitHub settings matches: `[BETTER_AUTH_URL]/api/auth/callback/github`
+- Ensure the OAuth app is not suspended
+
+## Next Steps
+
+- [Database Setup](/docs/database) - Initialize and seed your database
+- [Authentication](/docs/authentication) - Learn about the authentication system
+- [Deployment](/docs/deployment) - Deploy to production
