@@ -1,18 +1,6 @@
-import { createMDX } from "fumadocs-mdx/next";
+import type { NextConfig } from "next";
 
-const withMDX = createMDX();
-
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  async redirects() {
-    return [
-      {
-        source: "/docs",
-        destination: "/docs/index",
-        permanent: true,
-      },
-    ];
-  },
+const nextConfig: NextConfig = {
   async headers() {
     // Only enforce HTTPS in production
     if (process.env.NODE_ENV === "production") {
@@ -32,4 +20,4 @@ const nextConfig = {
   },
 };
 
-export default withMDX(nextConfig);
+export default nextConfig;
