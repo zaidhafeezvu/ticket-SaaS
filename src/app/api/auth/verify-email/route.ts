@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,20 +13,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use Better Auth's built-in email verification
-    const result = await auth.api.verifyEmail({
-      body: { token },
-      headers: request.headers,
+    // Find verification token in database
+    const verification = await prisma.verification.findFirst({
+      where: {
+        value: token,
+        expiresAt: {
+          gt: new Date(), // Token must not be expired
+        },
+      },
     });
 
-    if (result) {
-      return NextResponse.json({ success: true, message: "Email verified successfully" });
-    } else {
+    if (!verification) {
       return NextResponse.json(
         { error: "Invalid or expired verification token" },
         { status: 400 }
       );
     }
+
+    // Update user's email verified status
+    await prisma.user.update({
+      where: { email: verification.identifier },
+      data: { emailVerified: true },
+    });
+
+    // Delete the used verification token
+    await prisma.verification.delete({
+      where: { id: verification.id },
+    });
+
+    return NextResponse.json({ 
+      success: true, 
+      message: "Email verified successfully" 
+    });
   } catch (error) {
     console.error("Email verification error:", error);
     return NextResponse.json(

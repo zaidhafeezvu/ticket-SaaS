@@ -1,6 +1,13 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resendClient: Resend | null = null;
+
+function getResendClient() {
+  if (!resendClient && process.env.RESEND_API_KEY) {
+    resendClient = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendClient;
+}
 
 export async function sendVerificationEmail(
   email: string,
@@ -8,6 +15,17 @@ export async function sendVerificationEmail(
   name: string
 ) {
   const fromEmail = process.env.EMAIL_FROM || "onboarding@resend.dev";
+  
+  if (!process.env.RESEND_API_KEY) {
+    console.warn("RESEND_API_KEY not set. Skipping email send. Verification URL:", verificationUrl);
+    return;
+  }
+
+  const resend = getResendClient();
+  if (!resend) {
+    console.error("Failed to initialize Resend client");
+    throw new Error("Email service not configured");
+  }
   
   try {
     await resend.emails.send({
