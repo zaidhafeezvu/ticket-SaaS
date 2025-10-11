@@ -71,6 +71,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check email verification
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { emailVerified: true },
+    });
+
+    if (!user?.emailVerified) {
+      return NextResponse.json(
+        { error: "Email verification required" },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { title, description, price, eventDate, location, category, quantity } = body;
 

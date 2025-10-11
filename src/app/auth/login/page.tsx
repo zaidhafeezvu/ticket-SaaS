@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { Mail } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,6 +19,8 @@ export default function LoginPage() {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showResendVerification, setShowResendVerification] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,8 +41,41 @@ export default function LoginPage() {
       const errorMessage = err instanceof Error ? err.message : "Invalid email or password";
       setError(errorMessage);
       toast.error(errorMessage);
+      
+      // Check if error is related to email verification
+      if (errorMessage.toLowerCase().includes("email") && 
+          (errorMessage.toLowerCase().includes("verify") || errorMessage.toLowerCase().includes("verified"))) {
+        setShowResendVerification(true);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setResendingEmail(true);
+    try {
+      const response = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: formData.email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(data.message || "Verification email sent! Please check your inbox.");
+        setShowResendVerification(false);
+      } else {
+        toast.error(data.error || "Failed to resend verification email");
+      }
+    } catch (error) {
+      toast.error("Failed to resend verification email");
+      console.error("Resend verification error:", error);
+    } finally {
+      setResendingEmail(false);
     }
   };
 
@@ -85,8 +121,35 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent>
             {error && (
-              <div className="bg-destructive/15 text-destructive p-3 rounded-lg mb-4 text-sm">
-                {error}
+              <div className="space-y-3 mb-4">
+                <div className="bg-destructive/15 text-destructive p-3 rounded-lg text-sm">
+                  {error}
+                </div>
+                {showResendVerification && (
+                  <div className="bg-blue-50 dark:bg-blue-950/30 p-3 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                          Email not verified
+                        </p>
+                        <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                          Please check your email for the verification link.
+                        </p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="mt-2"
+                          onClick={handleResendVerification}
+                          disabled={resendingEmail}
+                        >
+                          {resendingEmail ? "Sending..." : "Resend Verification Email"}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

@@ -6,10 +6,12 @@ This application uses [Better Auth](https://www.better-auth.com/) for comprehens
 
 - ✅ Email/Password authentication
 - ✅ GitHub OAuth authentication
+- ✅ **Email verification (required)**
 - ✅ Secure password hashing with bcrypt
 - ✅ Session management with automatic refresh
 - ✅ Protected routes (Dashboard, Create Ticket, Purchase)
 - ✅ User-specific data (own tickets, purchases)
+- ✅ Resend verification email functionality
 
 ## Setup
 
@@ -22,6 +24,11 @@ DATABASE_URL="postgresql://user:password@localhost:5432/ticketsaas"
 BETTER_AUTH_SECRET="your-super-secret-key-change-this-in-production"
 BETTER_AUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000"
+
+# Email Configuration (Required for email verification)
+RESEND_API_KEY="re_xxxxxxxxxxxxx"
+EMAIL_FROM="onboarding@resend.dev"  # or "noreply@yourdomain.com" in production
+
 # Optional: GitHub OAuth (get from https://github.com/settings/developers)
 GITHUB_CLIENT_ID="your-github-oauth-client-id"
 GITHUB_CLIENT_SECRET="your-github-oauth-client-secret"
@@ -278,6 +285,7 @@ export async function POST(request: NextRequest) {
    - Set `BETTER_AUTH_URL` to your production domain (e.g., `https://yourdomain.com`)
    - Leave `NEXT_PUBLIC_BETTER_AUTH_URL` unset to use relative URLs (recommended for production)
    - Keep `DATABASE_URL` and `BETTER_AUTH_SECRET` secure
+   - **Set up Resend API key and configure email domain** (see [EMAIL_VERIFICATION.md](./EMAIL_VERIFICATION.md))
 
 2. **HTTPS:** 
    - ✅ HTTPS-only cookies are automatically enabled in production via `useSecureCookies` configuration
@@ -286,7 +294,11 @@ export async function POST(request: NextRequest) {
    - The application enforces HTTPS through secure cookies and HSTS headers
    - Always deploy behind HTTPS in production (use a reverse proxy like nginx, or deploy to platforms with built-in HTTPS like Vercel)
 
-3. **Email Verification:** Consider enabling email verification for production
+3. **Email Verification:** 
+   - ✅ **Email verification is now required** for all protected actions
+   - Users must verify their email before creating tickets or making purchases
+   - See detailed setup guide: [EMAIL_VERIFICATION.md](./EMAIL_VERIFICATION.md)
+   - Configure Resend for email delivery in production
 
 4. **Rate Limiting:** 
    - ✅ Implemented on all API routes with in-memory storage

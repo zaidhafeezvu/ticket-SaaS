@@ -31,6 +31,21 @@ export default function CreateTicketPage() {
     if (!isPending && !session) {
       router.push("/auth/login");
     }
+    // Check email verification status
+    if (session?.user?.email) {
+      fetch("/api/auth/check-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: session.user.id }),
+      }).then(async (res) => {
+        const data = await res.json();
+        if (!data.verified) {
+          router.push("/auth/email-verification-required");
+        }
+      }).catch(() => {
+        // Silently fail - user can still attempt to create ticket
+      });
+    }
   }, [session, isPending, router]);
 
   if (isPending) {
