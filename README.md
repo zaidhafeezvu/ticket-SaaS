@@ -4,7 +4,8 @@ A modern, full-featured SaaS platform for buying and selling event tickets built
 
 ## 🎫 Features
 
-- **User Authentication**: Secure email/password authentication with Better Auth
+- **User Authentication**: Secure email/password and GitHub OAuth authentication with Better Auth
+- **Email Verification**: Required email verification for account security
 - **Event Ticket Marketplace**: Browse and purchase tickets for concerts, sports, theater, and festivals
 - **Ticket Listing**: Easily list your tickets for sale with detailed information
 - **Real-time Availability**: Track ticket availability in real-time
@@ -12,13 +13,15 @@ A modern, full-featured SaaS platform for buying and selling event tickets built
 - **Dashboard**: Comprehensive dashboard to manage your listed tickets and purchases
 - **Responsive Design**: Beautiful, mobile-friendly UI built with Tailwind CSS
 - **Database Management**: PostgreSQL database with Prisma ORM for data persistence
-- **Protected Routes**: Authentication-required pages for selling and purchasing
+- **Protected Routes**: Email verification and authentication required for selling and purchasing
+- **Rate Limiting**: Built-in rate limiting on all API endpoints
 
 ## 🚀 Tech Stack
 
 - **Framework**: Next.js 15.5.4 with App Router
 - **Language**: TypeScript
-- **Authentication**: Better Auth with email/password
+- **Authentication**: Better Auth with email/password and GitHub OAuth
+- **Email**: Resend for transactional emails
 - **Styling**: Tailwind CSS 4
 - **Database**: PostgreSQL with Prisma ORM
 - **API**: Next.js API Routes (REST)
@@ -44,6 +47,11 @@ DATABASE_URL="postgresql://user:password@localhost:5432/ticketsaas"
 BETTER_AUTH_SECRET="your-super-secret-key-change-this-in-production"
 BETTER_AUTH_URL="http://localhost:3000"
 NEXT_PUBLIC_BETTER_AUTH_URL="http://localhost:3000"
+
+# Email Configuration (Required for email verification)
+RESEND_API_KEY="re_xxxxxxxxxxxxx"
+EMAIL_FROM="onboarding@resend.dev"
+
 # Optional: GitHub OAuth (get from https://github.com/settings/developers)
 GITHUB_CLIENT_ID="your-github-oauth-client-id"
 GITHUB_CLIENT_SECRET="your-github-oauth-client-secret"
@@ -116,40 +124,62 @@ bunx prisma studio
 
 ## 🔐 Authentication
 
-The application uses **Better Auth** for comprehensive user authentication. Key features:
+The application uses **Better Auth** for comprehensive user authentication with required email verification. Key features:
 
 - ✅ Email/password authentication with secure bcrypt hashing
 - ✅ GitHub OAuth authentication for easy sign-in
+- ✅ **Required email verification** for account security
+- ✅ Automated verification emails with beautiful HTML templates
+- ✅ Resend verification email functionality
 - ✅ Session management with automatic refresh
-- ✅ Protected routes for authenticated users only
+- ✅ Protected routes for verified users only
 - ✅ User-specific dashboards showing only owned tickets and purchases
 
 **Available Auth Pages:**
 - `/auth/signup` - Create a new account (email or GitHub)
 - `/auth/login` - Sign in to existing account (email or GitHub)
+- `/auth/verify-email` - Verify email address with token from email
+- `/auth/email-verification-required` - Prompt for unverified users
 
-**Protected Routes (require authentication):**
+**Protected Routes (require authentication + verified email):**
 - `/dashboard` - View your tickets and purchases
 - `/tickets/create` - List new tickets
 - Purchase functionality on ticket detail pages
 
 For detailed authentication documentation, see [AUTHENTICATION.md](./AUTHENTICATION.md).
 
+For email verification setup and configuration, see [EMAIL_VERIFICATION.md](./EMAIL_VERIFICATION.md).
+
 ## 📱 Pages & Features
 
 ### Authentication Pages
 
 #### Sign Up (`/auth/signup`)
-- Create new account with email and password
+- Create new account with email and password or GitHub
 - Name, email, and password validation
-- Automatic sign-in after registration
-- Redirect to dashboard upon success
+- Automatic verification email sent upon registration
+- Success message with email verification instructions
+- Redirect to verification required page
 
 #### Sign In (`/auth/login`)
-- Email/password authentication
+- Email/password or GitHub authentication
 - Error handling for invalid credentials
+- Email verification status check
+- Resend verification email option for unverified users
 - Session creation and management
 - Redirect to dashboard upon success
+
+#### Email Verification (`/auth/verify-email`)
+- Automatic verification when clicking email link
+- Token validation and expiration check
+- Success/error messaging
+- Automatic redirect to login after verification
+
+#### Verification Required (`/auth/email-verification-required`)
+- Shown to unverified users attempting protected actions
+- Resend verification email functionality
+- Clear instructions and user guidance
+- Sign out option
 
 ### Home Page (`/`)
 - Hero section with call-to-action buttons
