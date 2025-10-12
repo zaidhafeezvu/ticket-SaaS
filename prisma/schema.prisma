@@ -20,10 +20,12 @@ model User {
   updatedAt     DateTime  @updatedAt
   
   // Relations
-  tickets       Ticket[]
-  purchases     Purchase[]
-  sessions      Session[]
-  accounts      Account[]
+  tickets          Ticket[]
+  purchases        Purchase[]
+  sessions         Session[]
+  accounts         Account[]
+  reviewsGiven     Review[]  @relation("ReviewsGiven")
+  reviewsReceived  Review[]  @relation("ReviewsReceived")
 }
 
 model Session {
@@ -106,7 +108,28 @@ model Purchase {
   buyer       User     @relation(fields: [buyerId], references: [id])
   ticketId    String
   ticket      Ticket   @relation(fields: [ticketId], references: [id])
+  review      Review?
   
   @@index([buyerId])
   @@index([ticketId])
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  rating      Int      // 1-5 stars
+  comment     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  reviewerId  String
+  reviewer    User     @relation("ReviewsGiven", fields: [reviewerId], references: [id], onDelete: Cascade)
+  revieweeId  String
+  reviewee    User     @relation("ReviewsReceived", fields: [revieweeId], references: [id], onDelete: Cascade)
+  purchaseId  String   @unique
+  purchase    Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  
+  @@index([reviewerId])
+  @@index([revieweeId])
+  @@index([purchaseId])
 }

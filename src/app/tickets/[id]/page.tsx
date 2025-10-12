@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Star } from "lucide-react";
 import { toast } from "sonner";
 
 interface Ticket {
@@ -22,6 +23,7 @@ interface Ticket {
   category: string;
   quantity: number;
   available: number;
+  sellerId: string;
   seller: {
     name: string | null;
     email: string;
@@ -35,6 +37,10 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
   const [loading, setLoading] = useState(true);
   const [purchaseQuantity, setPurchaseQuantity] = useState(1);
   const [purchasing, setPurchasing] = useState(false);
+  const [sellerRating, setSellerRating] = useState<{
+    averageRating: number;
+    totalReviews: number;
+  } | null>(null);
 
   useEffect(() => {
     params.then((resolvedParams) => {
@@ -48,6 +54,18 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
       if (response.ok) {
         const data = await response.json();
         setTicket(data);
+        
+        // Fetch seller rating
+        if (data.sellerId) {
+          const ratingResponse = await fetch(`/api/reviews/user/${data.sellerId}`);
+          if (ratingResponse.ok) {
+            const ratingData = await ratingResponse.json();
+            setSellerRating({
+              averageRating: ratingData.stats.averageRating,
+              totalReviews: ratingData.stats.totalReviews,
+            });
+          }
+        }
       }
     } catch (error) {
       console.error("Error fetching ticket:", error);
@@ -262,8 +280,32 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
             {/* Seller Info */}
             <Card className="bg-muted">
               <CardContent className="pt-6">
-                <div className="text-sm text-muted-foreground">
-                  Listed by: <span className="font-semibold text-foreground">{ticket.seller.name || ticket.seller.email}</span>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="text-sm text-muted-foreground mb-1">Listed by:</div>
+                    <Link 
+                      href={`/users/${ticket.sellerId}`}
+                      className="font-semibold text-foreground hover:text-primary transition-colors"
+                    >
+                      {ticket.seller.name || ticket.seller.email}
+                    </Link>
+                    {sellerRating && (
+                      <div className="flex items-center gap-1 mt-2 text-sm">
+                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                        <span className="font-semibold">
+                          {sellerRating.totalReviews > 0 ? sellerRating.averageRating.toFixed(1) : "New"}
+                        </span>
+                        <span className="text-muted-foreground">
+                          ({sellerRating.totalReviews} {sellerRating.totalReviews === 1 ? "review" : "reviews"})
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/users/${ticket.sellerId}`}>
+                      View Profile
+                    </Link>
+                  </Button>
                 </div>
               </CardContent>
             </Card>

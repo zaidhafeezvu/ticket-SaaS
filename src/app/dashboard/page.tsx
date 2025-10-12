@@ -5,9 +5,12 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { ReviewList } from "@/components/review-list";
+import { ReviewButton } from "@/components/review-button";
+import { Star } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
 
@@ -54,18 +57,66 @@ export default async function DashboardPage() {
       buyerId: session.user.id,
     },
     include: {
-      ticket: true,
+      ticket: {
+        include: {
+          seller: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
       buyer: {
         select: {
           name: true,
           email: true,
         },
       },
+      review: true,
     },
     orderBy: {
       createdAt: 'desc',
     },
   }) as unknown as Purchase[];
+
+  // Fetch reviews received by the user
+  const reviewsReceived = await prisma.review.findMany({
+    where: {
+      revieweeId: session.user.id,
+    },
+    include: {
+      reviewer: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          image: true,
+        },
+      },
+      purchase: {
+        include: {
+          ticket: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+
+  // Calculate average rating
+  const totalReviews = reviewsReceived.length;
+  const averageRating =
+    totalReviews > 0
+      ? reviewsReceived.reduce((sum, review) => sum + review.rating, 0) / totalReviews
+      : 0;
 
   // Calculate totals
   const totalSales = tickets.reduce((sum, ticket) => {
@@ -86,7 +137,7 @@ export default async function DashboardPage() {
         <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
           <Card>
             <CardHeader className="pb-2">
               <CardDescription>Listed Tickets</CardDescription>
@@ -117,6 +168,22 @@ export default async function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-orange-600 dark:text-orange-500">${totalPurchases.toFixed(2)}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Your Rating</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
+                <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-500">
+                  {totalReviews > 0 ? averageRating.toFixed(1) : "N/A"}
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                {totalReviews} {totalReviews === 1 ? "review" : "reviews"}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -219,6 +286,7 @@ export default async function DashboardPage() {
                     <TableHead>Total Price</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Purchase Date</TableHead>
+                    <TableHead>Review</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -252,12 +320,47 @@ export default async function DashboardPage() {
                       <TableCell className="whitespace-nowrap text-muted-foreground">
                         {new Date(purchase.createdAt).toLocaleDateString()}
                       </TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {purchase.status === 'completed' && (
+                          <ReviewButton
+                            purchaseId={purchase.id}
+                            ticketTitle={purchase.ticket.title}
+                            sellerName={purchase.ticket.seller?.name || purchase.ticket.seller?.email || "Seller"}
+                            hasReview={!!purchase.review}
+                          />
+                        )}
+                      </TableCell>
                     </TableRow>
                   );
                   })}
                 </TableBody>
               </Table>
             </Card>
+          )}
+        </div>
+
+        {/* Reviews Received */}
+        <div className="mt-8">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold">⭐ Reviews Received</h2>
+            {totalReviews > 0 && (
+              <Button asChild variant="outline">
+                <Link href={`/users/${session.user.id}`}>
+                  View Full Profile
+                </Link>
+              </Button>
+            )}
+          </div>
+
+          {reviewsReceived.length === 0 ? (
+            <Card className="text-center p-8">
+              <div className="text-muted-foreground text-5xl mb-4">⭐</div>
+              <CardDescription className="mb-4">
+                No reviews yet. Reviews will appear here when buyers rate your tickets.
+              </CardDescription>
+            </Card>
+          ) : (
+            <ReviewList reviews={reviewsReceived as any} />
           )}
         </div>
       </div>

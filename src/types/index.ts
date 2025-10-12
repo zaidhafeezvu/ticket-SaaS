@@ -41,5 +41,17 @@ export interface Purchase {
     name: string | null;
     email: string;
   };
-  ticket?: Ticket;
+  ticket?: Ticket & {
+    seller?: {
+      id: string;
+      name: string | null;
+      email: string;
+    };
+  };
+  review?: {
+    id: string;
+    rating: number;
+    comment: string | null;
+    createdAt: Date;
+  } | null;
 }
