@@ -64,7 +64,7 @@ export function ReviewForm({
       } else {
         router.refresh();
       }
-    } catch (err) {
+    } catch {
       setError("An error occurred while submitting your review");
     } finally {
       setIsSubmitting(false);

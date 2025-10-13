@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ReviewList } from "@/components/review-list";
@@ -360,7 +360,10 @@ export default async function DashboardPage() {
               </CardDescription>
             </Card>
           ) : (
-            <ReviewList reviews={reviewsReceived as any} />
+            <ReviewList reviews={reviewsReceived.map(review => ({
+              ...review,
+              createdAt: review.createdAt.toISOString(),
+            }))} />
           )}
         </div>
       </div>

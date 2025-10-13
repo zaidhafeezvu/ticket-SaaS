@@ -10,6 +10,25 @@ interface UserProfilePageProps {
   params: Promise<{ id: string }>;
 }
 
+interface ReviewData {
+  id: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  reviewer: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
+  purchase?: {
+    ticket: {
+      id: string;
+      title: string;
+    };
+  };
+}
+
 export default async function UserProfilePage({ params }: UserProfilePageProps) {
   const { id } = await params;
 
@@ -181,7 +200,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
             </Card>
           ) : (
             <div className="space-y-4">
-              {reviews.map((review: any) => (
+              {reviews.map((review: ReviewData) => (
                 <Card key={review.id}>
                   <CardContent className="pt-6">
                     <div className="flex items-start gap-4">
