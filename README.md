@@ -238,6 +238,17 @@ For email verification setup and configuration, see [EMAIL_VERIFICATION.md](./EM
 - `POST /api/purchases` - Create a purchase (**requires authentication**, handles inventory management)
 - `GET /api/purchases` - Fetch all purchases
 
+### Reviews
+- `POST /api/reviews` - Create a review for a completed purchase (**requires authentication**)
+- `GET /api/reviews` - Fetch reviews with optional filtering
+- `GET /api/reviews/user/[id]` - Get reviews for a specific user with statistics
+
+### Health Check
+- `GET /api/health` - Basic application and database health check
+- `GET /api/health/detailed` - Comprehensive health check with system metrics
+
+For detailed health check documentation, see [HEALTH_CHECK.md](./HEALTH_CHECK.md).
+
 All API routes return JSON responses and include proper error handling.
 
 ## 🎨 UI Components & Design
