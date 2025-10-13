@@ -21,7 +21,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, User, LogOut } from "lucide-react";
+import { Menu, User, LogOut, Star } from "lucide-react";
 import { getAvatarUrl } from "@/lib/utils";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -103,6 +103,12 @@ export function Navbar() {
                           </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild>
+                          <Link href={`/users/${session.user.id}`} className="cursor-pointer">
+                            <User className="mr-2 h-4 w-4" />
+                            View Profile
+                          </Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem asChild>
                           <Link href="/dashboard" className="cursor-pointer">
                             <User className="mr-2 h-4 w-4" />
@@ -189,6 +195,17 @@ export function Navbar() {
                     <>
                       {session ? (
                         <>
+                          <Button 
+                            variant="ghost" 
+                            className="justify-start" 
+                            asChild
+                            onClick={() => setMobileMenuOpen(false)}
+                          >
+                            <Link href={`/users/${session.user.id}`}>
+                              <Star className="mr-2 h-4 w-4" />
+                              View Profile
+                            </Link>
+                          </Button>
                           <Button 
                             variant="ghost" 
                             className="justify-start" 

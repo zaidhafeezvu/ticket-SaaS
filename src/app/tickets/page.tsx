@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { SellerRating } from "@/components/seller-rating";
 
 export const dynamic = 'force-dynamic';
 
@@ -32,6 +33,28 @@ export default async function TicketsPage({
       createdAt: 'desc',
     },
   }) as unknown as Ticket[];
+
+  // Fetch seller ratings for all tickets
+  const sellerRatings = await Promise.all(
+    tickets.map(async (ticket) => {
+      const reviews = await prisma.review.findMany({
+        where: { revieweeId: ticket.sellerId },
+        select: { rating: true },
+      });
+      
+      const totalReviews = reviews.length;
+      const averageRating =
+        totalReviews > 0
+          ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
+          : 0;
+      
+      return {
+        sellerId: ticket.sellerId,
+        averageRating,
+        totalReviews,
+      };
+    })
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-background dark:from-blue-950/20 dark:to-background">
@@ -114,45 +137,57 @@ export default async function TicketsPage({
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tickets.map((ticket) => (
-              <Link
-                key={ticket.id}
-                href={`/tickets/${ticket.id}`}
-                className="block"
-              >
-                <Card className="overflow-hidden hover:shadow-xl transition-shadow h-full">
-                  <div className="h-48 bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-6xl">
-                    {ticket.category === 'concerts' && '🎵'}
-                    {ticket.category === 'sports' && '⚽'}
-                    {ticket.category === 'theater' && '🎭'}
-                    {ticket.category === 'festivals' && '🎉'}
-                    {!['concerts', 'sports', 'theater', 'festivals'].includes(ticket.category) && '🎫'}
-                  </div>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <CardTitle className="text-lg">{ticket.title}</CardTitle>
-                      <span className="text-primary font-bold text-lg">${ticket.price}</span>
+            {tickets.map((ticket, index) => {
+              const sellerRating = sellerRatings[index];
+              return (
+                <Link
+                  key={ticket.id}
+                  href={`/tickets/${ticket.id}`}
+                  className="block"
+                >
+                  <Card className="overflow-hidden hover:shadow-xl transition-shadow h-full">
+                    <div className="h-48 bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-6xl">
+                      {ticket.category === 'concerts' && '🎵'}
+                      {ticket.category === 'sports' && '⚽'}
+                      {ticket.category === 'theater' && '🎭'}
+                      {ticket.category === 'festivals' && '🎉'}
+                      {!['concerts', 'sports', 'theater', 'festivals'].includes(ticket.category) && '🎫'}
                     </div>
-                    <CardDescription className="line-clamp-2">{ticket.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-1 text-sm text-muted-foreground">
-                    <div>📍 {ticket.location}</div>
-                    <div>📅 {new Date(ticket.eventDate).toLocaleDateString()}</div>
-                  </CardContent>
-                  <CardFooter className="flex justify-between items-center">
-                    <span className={cn(
-                      "font-semibold",
-                      ticket.available > 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'
-                    )}>
-                      {ticket.available} / {ticket.quantity} available
-                    </span>
-                    <Badge variant="secondary">
-                      {ticket.category}
-                    </Badge>
-                  </CardFooter>
-                </Card>
-              </Link>
-            ))}
+                    <CardHeader>
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-lg">{ticket.title}</CardTitle>
+                        <span className="text-primary font-bold text-lg">${ticket.price}</span>
+                      </div>
+                      <CardDescription className="line-clamp-2">{ticket.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-2 text-sm text-muted-foreground">
+                      <div>📍 {ticket.location}</div>
+                      <div>📅 {new Date(ticket.eventDate).toLocaleDateString()}</div>
+                      <div className="pt-2">
+                        <SellerRating
+                          sellerId={ticket.sellerId}
+                          averageRating={sellerRating.averageRating}
+                          totalReviews={sellerRating.totalReviews}
+                          showLink={false}
+                          size="sm"
+                        />
+                      </div>
+                    </CardContent>
+                    <CardFooter className="flex justify-between items-center">
+                      <span className={cn(
+                        "font-semibold",
+                        ticket.available > 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'
+                      )}>
+                        {ticket.available} / {ticket.quantity} available
+                      </span>
+                      <Badge variant="secondary">
+                        {ticket.category}
+                      </Badge>
+                    </CardFooter>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>
