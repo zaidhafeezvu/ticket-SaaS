@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
+import { generateQRCodeData } from "@/lib/qrcode";
 
 // Rate limiters
 const createPurchaseLimiter = rateLimit({
@@ -91,14 +92,25 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      // Create purchase record
-      return tx.purchase.create({
+      // Create purchase record first to get the ID
+      const newPurchase = await tx.purchase.create({
         data: {
           ticketId,
           buyerId: session.user.id,
           quantity,
           totalPrice: ticket.price * quantity,
           status: "completed",
+        },
+      });
+
+      // Generate QR code with purchase ID
+      const qrCodeData = generateQRCodeData(newPurchase.id, ticketId, session.user.id);
+
+      // Update purchase with QR code
+      return tx.purchase.update({
+        where: { id: newPurchase.id },
+        data: {
+          qrCode: qrCodeData,
         },
         include: {
           ticket: true,
