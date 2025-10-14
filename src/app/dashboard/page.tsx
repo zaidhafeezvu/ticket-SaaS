@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { ReviewList } from "@/components/review-list";
 import { ReviewButton } from "@/components/review-button";
+import { DeleteTicketButton } from "@/components/delete-ticket-button";
 import { Star } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
@@ -220,12 +221,14 @@ export default async function DashboardPage() {
                     <TableHead>Available</TableHead>
                     <TableHead>Sold</TableHead>
                     <TableHead>Revenue</TableHead>
+                    <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {tickets.map((ticket) => {
                     const sold = ticket.quantity - ticket.available;
                     const revenue = ticket.purchases?.reduce((sum, p) => sum + p.totalPrice, 0) || 0;
+                    const hasPurchases = ticket.purchases && ticket.purchases.length > 0;
                     return (
                       <TableRow key={ticket.id}>
                         <TableCell>
@@ -251,6 +254,13 @@ export default async function DashboardPage() {
                         </TableCell>
                         <TableCell className="whitespace-nowrap font-semibold text-green-600 dark:text-green-500">
                           ${revenue.toFixed(2)}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          <DeleteTicketButton
+                            ticketId={ticket.id}
+                            ticketTitle={ticket.title}
+                            hasPurchases={hasPurchases || false}
+                          />
                         </TableCell>
                       </TableRow>
                     );

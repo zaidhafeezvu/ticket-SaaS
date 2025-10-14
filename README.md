@@ -233,6 +233,7 @@ For email verification setup and configuration, see [EMAIL_VERIFICATION.md](./EM
 - `GET /api/tickets` - Fetch all tickets (with optional category filter)
 - `POST /api/tickets` - Create a new ticket listing (**requires authentication**)
 - `GET /api/tickets/[id]` - Get ticket by ID
+- `DELETE /api/tickets/[id]` - Delete a ticket (**requires authentication**, ownership verification, prevents deletion if purchases exist)
 
 ### Purchases
 - `POST /api/purchases` - Create a purchase (**requires authentication**, handles inventory management)
