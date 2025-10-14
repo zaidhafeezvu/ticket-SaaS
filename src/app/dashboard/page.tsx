@@ -7,10 +7,9 @@ import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { ReviewList } from "@/components/review-list";
-import { ReviewButton } from "@/components/review-button";
 import { DeleteTicketButton } from "@/components/delete-ticket-button";
+import { PurchasesTable } from "@/components/purchases-table";
 import { Star } from "lucide-react";
 
 export const dynamic = 'force-dynamic';
@@ -286,66 +285,23 @@ export default async function DashboardPage() {
               </Button>
             </Card>
           ) : (
-            <Card>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Event</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Total Price</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Purchase Date</TableHead>
-                    <TableHead>Review</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {purchases.map((purchase) => {
-                    if (!purchase.ticket) return null;
-                    return (
-                    <TableRow key={purchase.id}>
-                      <TableCell>
-                        <Link
-                          href={`/tickets/${purchase.ticket.id}`}
-                          className="text-primary hover:underline font-medium"
-                        >
-                          {purchase.ticket.title}
-                        </Link>
-                        <div className="text-sm text-muted-foreground">{purchase.ticket.location}</div>
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {new Date(purchase.ticket.eventDate).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {purchase.quantity}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap font-semibold">
-                        ${purchase.totalPrice.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        <Badge variant={purchase.status === 'completed' ? 'default' : 'secondary'}>
-                          {purchase.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap text-muted-foreground">
-                        {new Date(purchase.createdAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {purchase.status === 'completed' && (
-                          <ReviewButton
-                            purchaseId={purchase.id}
-                            ticketTitle={purchase.ticket.title}
-                            sellerName={purchase.ticket.seller?.name || purchase.ticket.seller?.email || "Seller"}
-                            hasReview={!!purchase.review}
-                          />
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                  })}
-                </TableBody>
-              </Table>
-            </Card>
+            <PurchasesTable 
+              purchases={purchases.map(p => ({
+                id: p.id,
+                quantity: p.quantity,
+                totalPrice: p.totalPrice,
+                status: p.status,
+                createdAt: p.createdAt.toISOString(),
+                ticket: {
+                  id: p.ticket?.id || "",
+                  title: p.ticket?.title || "",
+                  location: p.ticket?.location || "",
+                  eventDate: p.ticket?.eventDate.toISOString() || "",
+                  seller: p.ticket?.seller,
+                },
+                review: p.review,
+              }))}
+            />
           )}
         </div>
 
