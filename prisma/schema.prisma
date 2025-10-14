@@ -100,6 +100,9 @@ model Purchase {
   quantity    Int
   totalPrice  Float
   status      String   @default("pending") // pending, completed, cancelled
+  qrCode      String?  @unique // Unique QR code for ticket entry
+  qrCodeScanned Boolean @default(false) // Whether QR code has been scanned
+  qrCodeScannedAt DateTime? // When QR code was scanned
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
@@ -112,6 +115,7 @@ model Purchase {
   
   @@index([buyerId])
   @@index([ticketId])
+  @@index([qrCode])
 }
 
 model Review {

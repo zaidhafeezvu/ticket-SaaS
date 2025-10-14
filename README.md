@@ -10,6 +10,8 @@ A modern, full-featured SaaS platform for buying and selling event tickets built
 - **Ticket Listing**: Easily list your tickets for sale with detailed information
 - **Real-time Availability**: Track ticket availability in real-time
 - **Purchase Management**: Complete purchase flow with transaction history
+- **QR Code Tickets**: Automatic QR code generation for secure event entry
+- **Ticket Verification**: Scan and verify tickets at events with one-time use tracking
 - **Dashboard**: Comprehensive dashboard to manage your listed tickets and purchases
 - **Responsive Design**: Beautiful, mobile-friendly UI built with Tailwind CSS
 - **Database Management**: PostgreSQL database with Prisma ORM for data persistence
@@ -25,6 +27,7 @@ A modern, full-featured SaaS platform for buying and selling event tickets built
 - **Styling**: Tailwind CSS 4
 - **Database**: PostgreSQL with Prisma ORM
 - **API**: Next.js API Routes (REST)
+- **QR Codes**: qrcode library for ticket generation
 
 ## 📦 Installation
 
@@ -216,10 +219,19 @@ For email verification setup and configuration, see [EMAIL_VERIFICATION.md](./EM
 - **Protected route - requires authentication**
 - Overview statistics (listed tickets, total sales, purchases made, total spent)
 - Manage your listed tickets with detailed table view
-- View purchase history
+- View purchase history with QR code access
+- Download QR codes for event entry
 - Revenue tracking per ticket
 - Status indicators
 - Quick navigation to ticket details
+
+### Ticket Verification (`/verify`)
+- **Protected route - requires authentication**
+- Scan QR codes to verify tickets at events
+- Check ticket status without marking as used
+- Mark tickets as scanned for entry (seller only)
+- View buyer and event information
+- Prevent duplicate entry with scan tracking
 
 ## 🛠️ API Routes
 
@@ -236,8 +248,23 @@ For email verification setup and configuration, see [EMAIL_VERIFICATION.md](./EM
 - `DELETE /api/tickets/[id]` - Delete a ticket (**requires authentication**, ownership verification, prevents deletion if purchases exist)
 
 ### Purchases
-- `POST /api/purchases` - Create a purchase (**requires authentication**, handles inventory management)
+- `POST /api/purchases` - Create a purchase (**requires authentication**, handles inventory management, generates QR code)
 - `GET /api/purchases` - Fetch all purchases
+- `GET /api/purchases/[id]/qrcode` - Get QR code for a purchase (**requires authentication**)
+
+### QR Code Verification
+- `POST /api/qrcode/verify` - Verify and optionally scan a QR code (**requires authentication**, seller only for marking as scanned)
+
+### Reviews
+- `POST /api/reviews` - Create a review for a completed purchase (**requires authentication**)
+- `GET /api/reviews` - Fetch reviews with optional filtering
+- `GET /api/reviews/user/[id]` - Get reviews for a specific user with statistics
+
+### Health Check
+- `GET /api/health` - Basic application and database health check
+- `GET /api/health/detailed` - Comprehensive health check with system metrics
+
+For detailed health check documentation, see [HEALTH_CHECK.md](./HEALTH_CHECK.md).
 
 All API routes return JSON responses and include proper error handling.
 
@@ -336,13 +363,16 @@ model Ticket {
 }
 
 model Purchase {
-  id          String   @id @default(cuid())
-  quantity    Int
-  totalPrice  Float
-  status      String   @default("pending")
-  buyer       User
-  ticket      Ticket
-  createdAt   DateTime @default(now())
+  id              String    @id @default(cuid())
+  quantity        Int
+  totalPrice      Float
+  status          String    @default("pending")
+  qrCode          String?   @unique
+  qrCodeScanned   Boolean   @default(false)
+  qrCodeScannedAt DateTime?
+  buyer           User
+  ticket          Ticket
+  createdAt       DateTime  @default(now())
 }
 ```
 
@@ -350,14 +380,14 @@ model Purchase {
 
 - [x] User authentication with Better Auth ✅
 - [x] GitHub OAuth provider ✅
+- [x] Email verification ✅
+- [x] QR code ticket generation for entry ✅
 - [ ] OAuth providers (Google, Twitter)
-- [ ] Email verification
 - [ ] Two-factor authentication (2FA)
 - [ ] Payment integration (Stripe/PayPal)
 - [ ] Email notifications for purchases and sales
 - [ ] Advanced search with filters (price range, date range, location)
 - [ ] User reviews and ratings system
-- [ ] QR code ticket generation for entry
 - [ ] Admin panel for platform management
 - [ ] Multi-image upload for tickets
 - [ ] Ticket transfer functionality
@@ -395,6 +425,10 @@ All API routes are protected with rate limiting to prevent abuse:
 **Purchase Endpoints**:
 - `POST /api/purchases`: 5 requests per minute (strict to prevent abuse)
 - `GET /api/purchases`: 30 requests per minute
+- `GET /api/purchases/[id]/qrcode`: 30 requests per minute
+
+**QR Code Verification**:
+- `POST /api/qrcode/verify`: 20 requests per minute
 
 Rate limit responses include:
 - `429 Too Many Requests` status code
