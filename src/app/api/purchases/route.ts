@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { rateLimit } from "@/lib/rate-limit";
 import { generateQRCodeData } from "@/lib/qrcode";
+import { sendPurchaseConfirmationEmail, sendSaleNotificationEmail } from "@/lib/email";
 
 // Rate limiters
 const createPurchaseLimiter = rateLimit({
@@ -113,7 +114,16 @@ export async function POST(request: NextRequest) {
           qrCode: qrCodeData,
         },
         include: {
-          ticket: true,
+          ticket: {
+            include: {
+              seller: {
+                select: {
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+          },
           buyer: {
             select: {
               name: true,
@@ -122,6 +132,32 @@ export async function POST(request: NextRequest) {
           },
         },
       });
+    });
+
+    // Send email notifications asynchronously (don't await to avoid blocking the response)
+    // Send purchase confirmation to buyer
+    sendPurchaseConfirmationEmail(
+      purchase.buyer.email,
+      purchase.buyer.name || "Buyer",
+      purchase.ticket.title,
+      purchase.quantity,
+      purchase.totalPrice,
+      purchase.ticket.eventDate,
+      purchase.ticket.location
+    ).catch(error => {
+      console.error("Failed to send purchase confirmation email:", error);
+    });
+
+    // Send sale notification to seller
+    sendSaleNotificationEmail(
+      purchase.ticket.seller.email,
+      purchase.ticket.seller.name || "Seller",
+      purchase.ticket.title,
+      purchase.quantity,
+      purchase.totalPrice,
+      purchase.buyer.name || "Buyer"
+    ).catch(error => {
+      console.error("Failed to send sale notification email:", error);
     });
 
     return NextResponse.json(purchase, { status: 201 });
