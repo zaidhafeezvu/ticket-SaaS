@@ -6,6 +6,7 @@ A modern, full-featured SaaS platform for buying and selling event tickets built
 
 - **User Authentication**: Secure email/password and GitHub OAuth authentication with Better Auth
 - **Email Verification**: Required email verification for account security
+- **Email Notifications**: Automatic email notifications for purchases and sales
 - **Event Ticket Marketplace**: Browse and purchase tickets for concerts, sports, theater, and festivals
 - **Ticket Listing**: Easily list your tickets for sale with detailed information
 - **Real-time Availability**: Track ticket availability in real-time
@@ -248,7 +249,7 @@ For email verification setup and configuration, see [EMAIL_VERIFICATION.md](./EM
 - `DELETE /api/tickets/[id]` - Delete a ticket (**requires authentication**, ownership verification, prevents deletion if purchases exist)
 
 ### Purchases
-- `POST /api/purchases` - Create a purchase (**requires authentication**, handles inventory management, generates QR code)
+- `POST /api/purchases` - Create a purchase (**requires authentication**, handles inventory management, generates QR code, **sends email notifications to buyer and seller**)
 - `GET /api/purchases` - Fetch all purchases
 - `GET /api/purchases/[id]/qrcode` - Get QR code for a purchase (**requires authentication**)
 
@@ -451,6 +452,7 @@ For issues or questions:
 - Open an issue on GitHub
 - Check the documentation above
 - Review [AUTHENTICATION.md](./AUTHENTICATION.md) for auth-related questions
+- Review [EMAIL_NOTIFICATIONS.md](./EMAIL_NOTIFICATIONS.md) for email notification setup and troubleshooting
 - Review the code comments for implementation details
 
 ## 🙏 Acknowledgments
