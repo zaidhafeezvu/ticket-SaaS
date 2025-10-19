@@ -62,19 +62,19 @@ export default async function TicketsPage({
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
             {category ? `${category.charAt(0).toUpperCase() + category.slice(1)} Tickets` : 'All Tickets'}
           </h1>
-          <Button asChild>
+          <Button asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
             <Link href="/tickets/create">
-              + List Tickets
+              ✨ List Tickets
             </Link>
           </Button>
         </div>
 
         {/* Category Filter */}
-        <div className="mb-8 flex gap-2 flex-wrap">
+        <div className="mb-8 flex gap-3 flex-wrap">
           <Button
             variant={!category ? "default" : "outline"}
             asChild
@@ -143,22 +143,25 @@ export default async function TicketsPage({
                 <Link
                   key={ticket.id}
                   href={`/tickets/${ticket.id}`}
-                  className="block"
+                  className="block group"
                 >
-                  <Card className="overflow-hidden hover:shadow-xl transition-shadow h-full">
-                    <div className="h-48 bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-6xl">
-                      {ticket.category === 'concerts' && '🎵'}
-                      {ticket.category === 'sports' && '⚽'}
-                      {ticket.category === 'theater' && '🎭'}
-                      {ticket.category === 'festivals' && '🎉'}
-                      {!['concerts', 'sports', 'theater', 'festivals'].includes(ticket.category) && '🎫'}
+                  <Card className="overflow-hidden h-full group-hover:scale-105 transition-all duration-300 border-2">
+                    <div className="h-48 bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-6xl relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="relative z-10 group-hover:scale-110 transition-transform duration-300">
+                        {ticket.category === 'concerts' && '🎵'}
+                        {ticket.category === 'sports' && '⚽'}
+                        {ticket.category === 'theater' && '🎭'}
+                        {ticket.category === 'festivals' && '🎉'}
+                        {!['concerts', 'sports', 'theater', 'festivals'].includes(ticket.category) && '🎫'}
+                      </div>
                     </div>
                     <CardHeader>
-                      <div className="flex justify-between items-start">
-                        <CardTitle className="text-lg">{ticket.title}</CardTitle>
-                        <span className="text-primary font-bold text-lg">${ticket.price}</span>
+                      <div className="flex justify-between items-start gap-2">
+                        <CardTitle className="text-xl group-hover:text-primary transition-colors">{ticket.title}</CardTitle>
+                        <span className="text-primary font-bold text-xl whitespace-nowrap">${ticket.price}</span>
                       </div>
-                      <CardDescription className="line-clamp-2">{ticket.description}</CardDescription>
+                      <CardDescription className="line-clamp-2 text-base">{ticket.description}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-2 text-sm text-muted-foreground">
                       <div>📍 {ticket.location}</div>
