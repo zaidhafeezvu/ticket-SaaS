@@ -106,22 +106,22 @@ export default function CreateTicketPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-background dark:from-blue-950/20 dark:to-background">
       {/* Navigation */}
       <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <Button variant="ghost" asChild>
+          <Button variant="ghost" asChild className="hover:scale-105">
             <Link href="/tickets">
               ← Back to Tickets
             </Link>
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-3xl">List Your Tickets</CardTitle>
+        <Card className="border-2 shadow-xl">
+          <CardHeader className="pb-8">
+            <CardTitle className="text-4xl bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">✨ List Your Tickets</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -230,15 +230,15 @@ export default function CreateTicketPage() {
                 </div>
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="flex-1"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg h-12"
                 >
-                  {loading ? "Creating..." : "List Tickets"}
+                  {loading ? "Creating..." : "🎫 List Tickets"}
                 </Button>
-                <Button variant="outline" asChild>
+                <Button variant="outline" asChild className="sm:w-32 h-12">
                   <Link href="/tickets">
                     Cancel
                   </Link>

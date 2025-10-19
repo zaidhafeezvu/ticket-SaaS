@@ -46,18 +46,18 @@ export function Navbar() {
   };
 
   return (
-    <nav className="border-b bg-background shadow-sm">
+    <nav className="border-b bg-background/95 backdrop-blur-sm shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className="text-2xl font-bold text-primary">
+          <Link href="/" className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-300">
             🎫 TicketSaaS
           </Link>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-6">
             <Link
               href="/tickets"
-              className="text-foreground hover:text-primary transition-colors"
+              className="text-foreground hover:text-primary transition-all duration-200 font-medium hover:scale-105"
             >
               Browse Tickets
             </Link>
@@ -68,11 +68,11 @@ export function Navbar() {
                   <>
                     <Link
                       href="/dashboard"
-                      className="text-foreground hover:text-primary transition-colors"
+                      className="text-foreground hover:text-primary transition-all duration-200 font-medium hover:scale-105"
                     >
                       Dashboard
                     </Link>
-                    <Button asChild>
+                    <Button asChild className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
                       <Link href="/tickets/create">
                         Sell Tickets
                       </Link>
