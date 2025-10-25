@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Ticket, Purchase } from "@/types";
+import type { Metadata } from "next";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -12,7 +13,13 @@ import { DeleteTicketButton } from "@/components/delete-ticket-button";
 import { PurchasesTable } from "@/components/purchases-table";
 import { Star } from "lucide-react";
 
-export const dynamic = 'force-dynamic';
+// Revalidate every 30 seconds for ISR
+export const revalidate = 30;
+
+export const metadata: Metadata = {
+  title: "Dashboard - TicketSaaS",
+  description: "Manage your tickets and purchases on TicketSaaS",
+};
 
 export default async function DashboardPage() {
   // Check authentication

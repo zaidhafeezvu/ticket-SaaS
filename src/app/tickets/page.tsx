@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Ticket } from "@/types";
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,35 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { SellerRating } from "@/components/seller-rating";
 
-export const dynamic = 'force-dynamic';
+// Revalidate every 30 seconds for ISR
+export const revalidate = 30;
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>;
+}): Promise<Metadata> {
+  const params = await searchParams;
+  const category = params.category;
+  
+  const title = category 
+    ? `${category.charAt(0).toUpperCase() + category.slice(1)} Tickets - TicketSaaS`
+    : "Browse All Tickets - TicketSaaS";
+  
+  const description = category
+    ? `Find the best ${category} tickets on TicketSaaS. Secure, verified, and affordable tickets.`
+    : "Browse all available event tickets. Concerts, sports, theater, and festivals.";
+  
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+    },
+  };
+}
 
 export default async function TicketsPage({
   searchParams,
@@ -24,6 +53,7 @@ export default async function TicketsPage({
     include: {
       seller: {
         select: {
+          id: true,
           name: true,
           email: true,
         },
@@ -34,11 +64,13 @@ export default async function TicketsPage({
     },
   }) as unknown as Ticket[];
 
-  // Fetch seller ratings for all tickets
-  const sellerRatings = await Promise.all(
-    tickets.map(async (ticket) => {
+  // Fetch seller ratings in parallel for all unique sellers
+  const uniqueSellerIds = [...new Set(tickets.map(ticket => ticket.sellerId))];
+  
+  const sellersRatingsMap = await Promise.all(
+    uniqueSellerIds.map(async (sellerId) => {
       const reviews = await prisma.review.findMany({
-        where: { revieweeId: ticket.sellerId },
+        where: { revieweeId: sellerId },
         select: { rating: true },
       });
       
@@ -49,12 +81,16 @@ export default async function TicketsPage({
           : 0;
       
       return {
-        sellerId: ticket.sellerId,
+        sellerId,
         averageRating,
         totalReviews,
       };
     })
-  );
+  ).then(ratings => {
+    const map = new Map<string, { averageRating: number; totalReviews: number }>();
+    ratings.forEach(r => map.set(r.sellerId, r));
+    return map;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-background dark:from-blue-950/20 dark:to-background">
@@ -137,8 +173,8 @@ export default async function TicketsPage({
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tickets.map((ticket, index) => {
-              const sellerRating = sellerRatings[index];
+            {tickets.map((ticket) => {
+              const sellerRating = sellersRatingsMap.get(ticket.sellerId) || { averageRating: 0, totalReviews: 0 };
               return (
                 <Link
                   key={ticket.id}

@@ -1,153 +1,124 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { Navbar } from "@/components/navbar";
-import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
-import { toast } from "sonner";
+import { prisma } from "@/lib/prisma";
+import { PurchaseForm } from "@/components/purchase-form";
 
-interface Ticket {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  eventDate: string;
-  location: string;
-  category: string;
-  quantity: number;
-  available: number;
-  sellerId: string;
-  seller: {
-    name: string | null;
-    email: string;
+// Revalidate every 60 seconds for ISR
+export const revalidate = 60;
+
+// Generate static params for top tickets (optional, can be limited)
+export async function generateStaticParams() {
+  try {
+    const tickets = await prisma.ticket.findMany({
+      select: { id: true },
+      take: 50, // Pre-generate top 50 tickets at build time
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return tickets.map((ticket) => ({
+      id: ticket.id,
+    }));
+  } catch {
+    // If DB is not available at build time, return empty array
+    // Pages will be generated on-demand with ISR
+    console.log('Database not available at build time, skipping static generation');
+    return [];
+  }
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+
+  const ticket = await prisma.ticket.findUnique({
+    where: { id },
+    select: { 
+      title: true, 
+      description: true, 
+      price: true,
+      category: true,
+      location: true,
+    },
+  });
+
+  if (!ticket) {
+    return {
+      title: "Ticket Not Found - TicketSaaS",
+    };
+  }
+
+  return {
+    title: `${ticket.title} - $${ticket.price} - TicketSaaS`,
+    description: ticket.description,
+    openGraph: {
+      title: ticket.title,
+      description: ticket.description,
+      type: "website",
+    },
   };
 }
 
-export default function TicketDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const router = useRouter();
-  const { data: session } = useSession();
-  const [ticket, setTicket] = useState<Ticket | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [purchaseQuantity, setPurchaseQuantity] = useState(1);
-  const [purchasing, setPurchasing] = useState(false);
-  const [sellerRating, setSellerRating] = useState<{
-    averageRating: number;
-    totalReviews: number;
-  } | null>(null);
+export default async function TicketDetailPage({ 
+  params 
+}: { 
+  params: Promise<{ id: string }> 
+}) {
+  const { id } = await params;
 
-  useEffect(() => {
-    params.then((resolvedParams) => {
-      fetchTicket(resolvedParams.id);
-    });
-  }, [params]);
-
-  const fetchTicket = async (id: string) => {
-    try {
-      const response = await fetch(`/api/tickets/${id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setTicket(data);
-        
-        // Fetch seller rating
-        if (data.sellerId) {
-          const ratingResponse = await fetch(`/api/reviews/user/${data.sellerId}`);
-          if (ratingResponse.ok) {
-            const ratingData = await ratingResponse.json();
-            setSellerRating({
-              averageRating: ratingData.stats.averageRating,
-              totalReviews: ratingData.stats.totalReviews,
-            });
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching ticket:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePurchase = async () => {
-    if (!session) {
-      router.push("/auth/login");
-      return;
-    }
-
-    if (!ticket || purchaseQuantity > ticket.available) {
-      toast.error("Invalid quantity. Please check the available tickets.");
-      return;
-    }
-
-    setPurchasing(true);
-    try {
-      const response = await fetch("/api/purchases", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+  // Fetch ticket and seller rating in parallel
+  const [ticket, reviews] = await Promise.all([
+    prisma.ticket.findUnique({
+      where: { id },
+      include: {
+        seller: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
         },
-        body: JSON.stringify({
-          ticketId: ticket.id,
-          quantity: purchaseQuantity,
-        }),
+      },
+    }),
+    prisma.ticket.findUnique({
+      where: { id },
+      select: { sellerId: true },
+    }).then(async (t) => {
+      if (!t) return [];
+      return prisma.review.findMany({
+        where: { revieweeId: t.sellerId },
+        select: { rating: true },
       });
-
-      if (response.ok) {
-        toast.success("Purchase successful! Check your dashboard for details.");
-        router.push("/dashboard");
-        router.refresh();
-      } else {
-        const error = await response.json();
-        toast.error(error.error || "Purchase failed. Please try again.");
-      }
-    } catch (error) {
-      console.error("Error purchasing ticket:", error);
-      toast.error("An error occurred while processing your purchase");
-    } finally {
-      setPurchasing(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="flex items-center justify-center py-16">
-          <div className="text-2xl text-muted-foreground">Loading...</div>
-        </div>
-      </div>
-    );
-  }
+    }),
+  ]);
 
   if (!ticket) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Navbar />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
-          <h1 className="text-3xl font-bold mb-4">Ticket not found</h1>
-          <Button variant="ghost" asChild>
-            <Link href="/tickets">
-              ← Back to Tickets
-            </Link>
-          </Button>
-        </div>
-      </div>
-    );
+    notFound();
   }
 
-  const totalPrice = ticket.price * purchaseQuantity;
-  const categoryEmoji = {
+  // Calculate seller rating
+  const totalReviews = reviews.length;
+  const averageRating =
+    totalReviews > 0
+      ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
+      : 0;
+
+  const categoryEmojiMap: Record<string, string> = {
     concerts: "🎵",
     sports: "⚽",
     theater: "🎭",
     festivals: "🎉",
-  }[ticket.category] || "🎫";
+  };
+  
+  const categoryEmoji = categoryEmojiMap[ticket.category] || "🎫";
 
   return (
     <div className="min-h-screen bg-background">
@@ -157,7 +128,7 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <Button variant="ghost" asChild>
-            <Link href="/tickets">
+            <Link href="/tickets" prefetch={true}>
               ← Back to Tickets
             </Link>
           </Button>
@@ -228,54 +199,12 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
               </CardContent>
             </Card>
 
-            {/* Purchase Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Purchase Tickets</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {ticket.available > 0 ? (
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="quantity">Quantity</Label>
-                      <Input
-                        type="number"
-                        id="quantity"
-                        min="1"
-                        max={ticket.available}
-                        value={purchaseQuantity}
-                        onChange={(e) => setPurchaseQuantity(parseInt(e.target.value) || 1)}
-                      />
-                    </div>
-
-                    <Card className="bg-primary/5 border-primary/20">
-                      <CardContent className="pt-6">
-                        <div className="flex justify-between items-center text-lg">
-                          <span className="font-semibold">Total:</span>
-                          <span className="font-bold text-primary text-2xl">
-                            ${totalPrice.toFixed(2)}
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Button
-                      onClick={handlePurchase}
-                      disabled={purchasing || purchaseQuantity > ticket.available}
-                      className="w-full"
-                      size="lg"
-                    >
-                      {purchasing ? "Processing..." : "Buy Now"}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="text-center py-4">
-                    <p className="text-destructive font-semibold text-lg">Sold Out</p>
-                    <p className="text-muted-foreground mt-2">This event is currently sold out.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            {/* Purchase Section - Client Component */}
+            <PurchaseForm
+              ticketId={ticket.id}
+              available={ticket.available}
+              price={ticket.price}
+            />
 
             {/* Seller Info */}
             <Card className="bg-muted">
@@ -286,23 +215,24 @@ export default function TicketDetailPage({ params }: { params: Promise<{ id: str
                     <Link 
                       href={`/users/${ticket.sellerId}`}
                       className="font-semibold text-foreground hover:text-primary transition-colors"
+                      prefetch={false}
                     >
                       {ticket.seller.name || ticket.seller.email}
                     </Link>
-                    {sellerRating && (
+                    {totalReviews > 0 && (
                       <div className="flex items-center gap-1 mt-2 text-sm">
                         <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                         <span className="font-semibold">
-                          {sellerRating.totalReviews > 0 ? sellerRating.averageRating.toFixed(1) : "New"}
+                          {averageRating.toFixed(1)}
                         </span>
                         <span className="text-muted-foreground">
-                          ({sellerRating.totalReviews} {sellerRating.totalReviews === 1 ? "review" : "reviews"})
+                          ({totalReviews} {totalReviews === 1 ? "review" : "reviews"})
                         </span>
                       </div>
                     )}
                   </div>
                   <Button asChild variant="outline" size="sm">
-                    <Link href={`/users/${ticket.sellerId}`}>
+                    <Link href={`/users/${ticket.sellerId}`} prefetch={false}>
                       View Profile
                     </Link>
                   </Button>
