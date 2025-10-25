@@ -26,7 +26,7 @@ export async function generateStaticParams() {
     return users.map((user) => ({
       id: user.id,
     }));
-  } catch (error) {
+  } catch {
     // If DB is not available at build time, return empty array
     // Pages will be generated on-demand with ISR
     console.log('Database not available at build time, skipping static generation');
