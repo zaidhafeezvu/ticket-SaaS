@@ -1,10 +1,70 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Star, MapPin, Calendar, Ticket } from "lucide-react";
 import Link from "next/link";
+
+// Revalidate every 5 minutes
+export const revalidate = 300;
+
+// Generate static params for active users
+export async function generateStaticParams() {
+  try {
+    const users = await prisma.user.findMany({
+      where: {
+        tickets: {
+          some: {},
+        },
+      },
+      select: { id: true },
+      take: 100, // Pre-generate top 100 active users
+    });
+
+    return users.map((user) => ({
+      id: user.id,
+    }));
+  } catch (error) {
+    // If DB is not available at build time, return empty array
+    // Pages will be generated on-demand with ISR
+    console.log('Database not available at build time, skipping static generation');
+    return [];
+  }
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+
+  const user = await prisma.user.findUnique({
+    where: { id },
+    select: { 
+      name: true, 
+      email: true,
+    },
+  });
+
+  if (!user) {
+    return {
+      title: "User Not Found - TicketSaaS",
+    };
+  }
+
+  return {
+    title: `${user.name || user.email} - TicketSaaS`,
+    description: `View tickets and reviews for ${user.name || user.email} on TicketSaaS`,
+    openGraph: {
+      title: user.name || user.email,
+      description: `Ticket seller profile on TicketSaaS`,
+      type: "profile",
+    },
+  };
+}
 
 interface UserProfilePageProps {
   params: Promise<{ id: string }>;
@@ -32,35 +92,81 @@ interface ReviewData {
 export default async function UserProfilePage({ params }: UserProfilePageProps) {
   const { id } = await params;
 
-  // Fetch user data
-  const user = await prisma.user.findUnique({
-    where: { id },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-      createdAt: true,
-      _count: {
-        select: {
-          tickets: true,
-          purchases: true,
+  // Fetch user data and reviews in parallel
+  const [user, reviewsData] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+        createdAt: true,
+        _count: {
+          select: {
+            tickets: true,
+            purchases: true,
+          },
         },
       },
-    },
-  });
+    }),
+    prisma.review.findMany({
+      where: { revieweeId: id },
+      include: {
+        reviewer: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
+        purchase: {
+          include: {
+            ticket: {
+              select: {
+                id: true,
+                title: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    }),
+  ]);
 
   if (!user) {
     notFound();
   }
 
-  // Fetch user's reviews
-  const reviewsResponse = await fetch(
-    `${process.env.NEXT_PUBLIC_BETTER_AUTH_URL || "http://localhost:3000"}/api/reviews/user/${id}`,
-    { cache: "no-store" }
-  );
-  const reviewsData = await reviewsResponse.json();
-  const { reviews, stats } = reviewsData;
+  // Calculate review stats
+  const totalReviews = reviewsData.length;
+  const averageRating =
+    totalReviews > 0
+      ? reviewsData.reduce((sum, r) => sum + r.rating, 0) / totalReviews
+      : 0;
+
+  const ratingDistribution = {
+    5: reviewsData.filter((r) => r.rating === 5).length,
+    4: reviewsData.filter((r) => r.rating === 4).length,
+    3: reviewsData.filter((r) => r.rating === 3).length,
+    2: reviewsData.filter((r) => r.rating === 2).length,
+    1: reviewsData.filter((r) => r.rating === 1).length,
+  };
+
+  const stats = {
+    averageRating,
+    totalReviews,
+    ratingDistribution,
+  };
+
+  const reviews = reviewsData.map((review) => ({
+    ...review,
+    createdAt: review.createdAt.toISOString(),
+  }));
 
   // Fetch user's active tickets
   const activeTickets = await prisma.ticket.findMany({

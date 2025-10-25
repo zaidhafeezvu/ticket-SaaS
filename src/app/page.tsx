@@ -2,6 +2,18 @@ import Link from "next/link";
 import { Navbar } from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "TicketSaaS - Buy and Sell Event Tickets",
+  description: "The trusted marketplace for concert tickets, sports events, theater shows, and festivals. Safe, secure, and simple ticket trading platform.",
+  keywords: ["tickets", "events", "concerts", "sports", "theater", "festivals", "marketplace"],
+  openGraph: {
+    title: "TicketSaaS - Buy and Sell Event Tickets",
+    description: "The trusted marketplace for event tickets. Safe, secure, and simple.",
+    type: "website",
+  },
+};
 
 export default function Home() {
   return (
@@ -25,7 +37,7 @@ export default function Home() {
               asChild
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-105 text-base px-8 py-6 h-auto"
             >
-              <Link href="/tickets">
+              <Link href="/tickets" prefetch={true}>
                 🎫 Browse Tickets
               </Link>
             </Button>
@@ -35,7 +47,7 @@ export default function Home() {
               asChild
               className="border-2 border-purple-600/50 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-950/50 dark:hover:to-purple-950/50 transition-all duration-300 hover:scale-105 hover:shadow-lg text-base px-8 py-6 h-auto hover:border-purple-600"
             >
-              <Link href="/tickets/create">
+              <Link href="/tickets/create" prefetch={false}>
                 ✨ List Your Tickets
               </Link>
             </Button>
@@ -85,6 +97,7 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <Link 
               href="/tickets?category=concerts" 
+              prefetch={true}
               className="group relative bg-gradient-to-br from-purple-500 to-pink-500 text-white p-8 rounded-xl text-center font-bold hover:shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-105 overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -95,6 +108,7 @@ export default function Home() {
             </Link>
             <Link 
               href="/tickets?category=sports" 
+              prefetch={true}
               className="group relative bg-gradient-to-br from-green-500 to-teal-500 text-white p-8 rounded-xl text-center font-bold hover:shadow-2xl hover:shadow-green-500/50 transition-all duration-300 hover:scale-105 overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -105,6 +119,7 @@ export default function Home() {
             </Link>
             <Link 
               href="/tickets?category=theater" 
+              prefetch={true}
               className="group relative bg-gradient-to-br from-red-500 to-orange-500 text-white p-8 rounded-xl text-center font-bold hover:shadow-2xl hover:shadow-red-500/50 transition-all duration-300 hover:scale-105 overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -115,6 +130,7 @@ export default function Home() {
             </Link>
             <Link 
               href="/tickets?category=festivals" 
+              prefetch={true}
               className="group relative bg-gradient-to-br from-blue-500 to-indigo-500 text-white p-8 rounded-xl text-center font-bold hover:shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 hover:scale-105 overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
