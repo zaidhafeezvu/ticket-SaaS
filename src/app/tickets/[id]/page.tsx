@@ -98,10 +98,6 @@ export default async function TicketDetailPage({
     select: { rating: true },
   });
 
-  if (!ticket) {
-    notFound();
-  }
-
   // Calculate seller rating
   const totalReviews = reviews.length;
   const averageRating =
