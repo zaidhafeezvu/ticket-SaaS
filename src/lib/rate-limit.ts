@@ -29,15 +29,15 @@ export function rateLimit(config: RateLimitConfig) {
     const now = Date.now();
     const record = rateLimitStore.get(ip);
 
-    // Clean up old entries periodically (simple cleanup)
-    if (rateLimitStore.size > 10000) {
-      const keysToDelete: string[] = [];
-      rateLimitStore.forEach((value, key) => {
+    // Clean up old entries periodically (optimized cleanup)
+    // Only scan for cleanup every 100 requests to reduce overhead
+    if (rateLimitStore.size > 1000 && Math.random() < 0.01) {
+      // Use iterator to delete while iterating for better performance
+      for (const [key, value] of rateLimitStore.entries()) {
         if (value.resetTime < now) {
-          keysToDelete.push(key);
+          rateLimitStore.delete(key);
         }
-      });
-      keysToDelete.forEach((key) => rateLimitStore.delete(key));
+      }
     }
 
     if (!record || record.resetTime < now) {

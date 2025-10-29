@@ -93,6 +93,9 @@ model Ticket {
   purchases   Purchase[]
   
   @@index([sellerId])
+  @@index([category])
+  @@index([eventDate])
+  @@index([available])
 }
 
 model Purchase {
@@ -116,6 +119,7 @@ model Purchase {
   @@index([buyerId])
   @@index([ticketId])
   @@index([qrCode])
+  @@index([status])
 }
 
 model Review {
