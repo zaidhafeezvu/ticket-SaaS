@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET all purchases
+// GET all purchases (authenticated users only - returns their own purchases)
 export async function GET(request: NextRequest) {
   // Apply rate limiting
   const rateLimitResponse = await getPurchasesLimiter(request);
@@ -179,7 +179,23 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Check authentication
+    const session = await auth.api.getSession({
+      headers: request.headers,
+    });
+
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // Return only the authenticated user's purchases for security
     const purchases = await prisma.purchase.findMany({
+      where: {
+        buyerId: session.user.id,
+      },
       include: {
         ticket: true,
         buyer: {

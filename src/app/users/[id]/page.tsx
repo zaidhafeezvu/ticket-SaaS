@@ -142,20 +142,18 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
     notFound();
   }
 
-  // Calculate review stats
+  // Calculate review stats with optimized single-pass algorithm
   const totalReviews = reviewsData.length;
-  const averageRating =
-    totalReviews > 0
-      ? reviewsData.reduce((sum, r) => sum + r.rating, 0) / totalReviews
-      : 0;
-
-  const ratingDistribution = {
-    5: reviewsData.filter((r) => r.rating === 5).length,
-    4: reviewsData.filter((r) => r.rating === 4).length,
-    3: reviewsData.filter((r) => r.rating === 3).length,
-    2: reviewsData.filter((r) => r.rating === 2).length,
-    1: reviewsData.filter((r) => r.rating === 1).length,
-  };
+  let sumRating = 0;
+  const ratingDistribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  
+  // Single pass through reviews to calculate both sum and distribution
+  reviewsData.forEach((review) => {
+    sumRating += review.rating;
+    ratingDistribution[review.rating as keyof typeof ratingDistribution]++;
+  });
+  
+  const averageRating = totalReviews > 0 ? sumRating / totalReviews : 0;
 
   const stats = {
     averageRating,

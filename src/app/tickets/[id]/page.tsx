@@ -74,35 +74,29 @@ export default async function TicketDetailPage({
 }) {
   const { id } = await params;
 
-  // Fetch ticket and seller rating in parallel
-  const [ticket, reviews] = await Promise.all([
-    prisma.ticket.findUnique({
-      where: { id },
-      include: {
-        seller: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
+  // Fetch ticket first, then get reviews using the sellerId from the ticket
+  const ticket = await prisma.ticket.findUnique({
+    where: { id },
+    include: {
+      seller: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
         },
       },
-    }),
-    prisma.ticket.findUnique({
-      where: { id },
-      select: { sellerId: true },
-    }).then(async (t) => {
-      if (!t) return [];
-      return prisma.review.findMany({
-        where: { revieweeId: t.sellerId },
-        select: { rating: true },
-      });
-    }),
-  ]);
+    },
+  });
 
   if (!ticket) {
     notFound();
   }
+
+  // Fetch reviews using the sellerId from the already-fetched ticket
+  const reviews = await prisma.review.findMany({
+    where: { revieweeId: ticket.sellerId },
+    select: { rating: true },
+  });
 
   // Calculate seller rating
   const totalReviews = reviews.length;
