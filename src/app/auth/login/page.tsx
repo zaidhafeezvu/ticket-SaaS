@@ -27,29 +27,32 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    try {
-      await authClient.signIn.email({
-        email: formData.email,
-        password: formData.password,
-      });
+    const { error } = await authClient.signIn.email({
+      email: formData.email,
+      password: formData.password,
+    });
 
+    if (error) {
+      const errorMessage = error.message || "Invalid email or password";
+      setError(errorMessage);
+      toast.error(errorMessage);
+
+      // Check if error is related to email verification
+      if (
+        errorMessage.toLowerCase().includes("email") &&
+        (errorMessage.toLowerCase().includes("verify") ||
+          errorMessage.toLowerCase().includes("verified"))
+      ) {
+        setShowResendVerification(true);
+      }
+    } else {
       // Sign in successful, redirect to dashboard
       toast.success("Welcome back! Signed in successfully.");
       router.push("/dashboard");
       router.refresh();
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Invalid email or password";
-      setError(errorMessage);
-      toast.error(errorMessage);
-      
-      // Check if error is related to email verification
-      if (errorMessage.toLowerCase().includes("email") && 
-          (errorMessage.toLowerCase().includes("verify") || errorMessage.toLowerCase().includes("verified"))) {
-        setShowResendVerification(true);
-      }
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(false);
   };
 
   const handleResendVerification = async () => {
